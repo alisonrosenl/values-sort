@@ -96,7 +96,7 @@ function IntroScreen({ email, setEmail, onStart }) {
       </p>
       <div className="instructions">
         <p>
-          You will be shown <strong>83 value cards</strong> one at a time.
+          You will be shown <strong>49 value cards</strong> one at a time.
           For each card, sort it into one of three piles:
         </p>
         <p style={{ marginTop: '0.75rem' }}>
