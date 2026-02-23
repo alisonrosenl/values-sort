@@ -6,6 +6,48 @@
   flex-direction: column;
 }
 
+.app-content {
+  flex: 1;
+}
+
+/* ========== Brand ========== */
+
+.brand-script {
+  font-family: 'Alex Brush', cursive;
+  color: #0E0D0C;
+  display: inline-block;
+}
+
+.brand-script-large {
+  font-size: 3rem;
+}
+
+.intro-brand-link {
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.intro-brand-link:hover {
+  opacity: 0.7;
+}
+
+.brand-presents {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #B6873F;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.results-brand {
+  display: block;
+  text-align: center;
+  font-size: 1.8rem;
+  color: #B6873F;
+  margin-bottom: 0.25rem;
+}
+
 /* ========== Intro Screen ========== */
 
 .intro {
@@ -13,8 +55,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  padding: 2rem;
+  min-height: calc(100vh - 200px);
+  padding: 3rem 2rem 2rem;
   text-align: center;
 }
 
@@ -29,14 +71,6 @@
   color: #B6873F;
   margin-bottom: 2rem;
   font-weight: 500;
-}
-
-.intro .attribution {
-  font-size: 0.75rem;
-  color: #0E0D0C;
-  opacity: 0.6;
-  margin-bottom: 2rem;
-  line-height: 1.6;
 }
 
 .intro .instructions {
@@ -839,14 +873,63 @@
   margin-bottom: 2rem;
 }
 
-.results-attribution {
+/* ========== Site Footer ========== */
+
+.site-footer {
+  background: #0E0D0C;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 2rem 1.5rem;
   text-align: center;
-  font-size: 0.7rem;
+  font-size: 0.78rem;
+  line-height: 1.7;
+}
+
+.footer-brand {
+  margin-bottom: 1rem;
+}
+
+.footer-logo-link {
+  text-decoration: none;
+}
+
+.footer-logo-link .brand-script {
+  font-size: 1.6rem;
+  color: #B6873F;
+  transition: opacity 0.2s;
+}
+
+.footer-logo-link:hover .brand-script {
+  opacity: 0.8;
+}
+
+.footer-disclaimer {
+  max-width: 540px;
+  margin: 0 auto 1.25rem;
+  font-size: 0.72rem;
+  line-height: 1.7;
   opacity: 0.5;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #D6E1DD;
-  line-height: 1.6;
+}
+
+.footer-links {
+  font-size: 0.72rem;
+  opacity: 0.45;
+}
+
+.footer-links a {
+  color: #B6873F;
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  text-decoration: underline;
+}
+
+.footer-sep {
+  margin: 0 0.5rem;
+}
+
+.footer-credit {
+  display: inline;
 }
 
 /* ========== Card enter animation ========== */
@@ -937,8 +1020,19 @@
     display: none !important;
   }
 
-  .results-attribution {
+  .site-footer {
+    background: white !important;
+    color: #333 !important;
     border-top: 1px solid #ccc;
+    padding: 1rem;
+  }
+
+  .footer-logo-link .brand-script {
+    color: #333;
+  }
+
+  .footer-disclaimer {
+    opacity: 0.6;
   }
 
   .results-screen {

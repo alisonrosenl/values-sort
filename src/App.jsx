@@ -164,11 +164,43 @@ function DroppablePile({ id, label, cards, className }) {
   );
 }
 
+// --- Site Footer ---
+
+function SiteFooter() {
+  return (
+    <footer className="site-footer">
+      <div className="footer-brand">
+        <a href="https://alisonrose.nl" target="_blank" rel="noopener noreferrer" className="footer-logo-link">
+          <span className="brand-script">Alison Rose</span>
+        </a>
+      </div>
+      <div className="footer-disclaimer">
+        This tool is for personal reflection and self-discovery only.
+        It is not a substitute for professional psychological, medical, or therapeutic advice.
+        If you are experiencing a mental health concern, please consult a qualified professional.
+      </div>
+      <div className="footer-links">
+        <a href="https://alisonrose.nl" target="_blank" rel="noopener noreferrer">alisonrose.nl</a>
+        <span className="footer-sep">&middot;</span>
+        <span className="footer-credit">
+          Adapted from the Personal Values Card Sort by
+          W.R. Miller, J. C&rsquo;de Baca, D.B. Matthews, P.L. Wilbourne
+          &mdash; University of New Mexico, 2001
+        </span>
+      </div>
+    </footer>
+  );
+}
+
 // --- Screens ---
 
 function IntroScreen({ email, setEmail, onStart, savedProgress, onResume, friendName }) {
   return (
     <div className="intro">
+      <a href="https://alisonrose.nl" target="_blank" rel="noopener noreferrer" className="intro-brand-link">
+        <span className="brand-script brand-script-large">Alison Rose</span>
+      </a>
+      <p className="brand-presents">presents</p>
       <h1>Personal Values Card Sort</h1>
       <p className="subtitle">Discover what matters most to you</p>
 
@@ -178,12 +210,6 @@ function IntroScreen({ email, setEmail, onStart, savedProgress, onResume, friend
           Complete your sort to see how you match up.
         </div>
       )}
-
-      <p className="attribution">
-        Based on the Personal Values Card Sort by<br />
-        W.R. Miller, J. C&rsquo;de Baca, D.B. Matthews, P.L. Wilbourne<br />
-        University of New Mexico, 2001
-      </p>
       <div className="instructions">
         <p>
           You will be shown <strong>49 value cards</strong> one at a time.
@@ -541,13 +567,20 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
       ctx.fillText(v.description, 125 + ctx.measureText(v.title).width + 12, y + 26);
     });
 
+    // Branding
+    const brandY = h - 55;
+    ctx.fillStyle = '#B6873F';
+    ctx.font = '22px cursive';
+    ctx.textAlign = 'center';
+    ctx.fillText('Alison Rose', w / 2, brandY);
+
     // Footer
     const footerY = h - 30;
     ctx.fillStyle = '#0E0D0C';
     ctx.font = '11px sans-serif';
     ctx.textAlign = 'center';
     ctx.globalAlpha = 0.4;
-    ctx.fillText('Personal Values Card Sort — Miller, C\'de Baca, Matthews, Wilbourne (2001)', w / 2, footerY);
+    ctx.fillText('alisonrose.nl  |  Personal Values Card Sort', w / 2, footerY);
     ctx.globalAlpha = 1;
 
     // Download
@@ -559,6 +592,7 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
 
   return (
     <div className="results-screen">
+      <span className="brand-script results-brand">Alison Rose</span>
       <h1>Your Results</h1>
       <p className="results-subtitle">
         Here&rsquo;s how you sorted your personal values
@@ -704,11 +738,6 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
         </button>
       </div>
 
-      <p className="results-attribution">
-        Based on the Personal Values Card Sort by
-        W.R. Miller, J. C&rsquo;de Baca, D.B. Matthews, P.L. Wilbourne
-        &mdash; University of New Mexico, 2001
-      </p>
     </div>
   );
 }
@@ -888,44 +917,47 @@ function App() {
 
   return (
     <div className="app">
-      {screen === 'intro' && (
-        <IntroScreen
-          email={email}
-          setEmail={setEmail}
-          onStart={handleStart}
-          savedProgress={savedProgress}
-          onResume={handleResume}
-          friendName={friendName}
-        />
-      )}
-      {screen === 'sorting' && (
-        <SortingScreen
-          currentCard={currentCard}
-          totalCards={totalCards}
-          sortedCount={sortedCount}
-          piles={piles}
-          onSort={handleSort}
-          onUndo={handleUndo}
-          onFinishEarly={handleFinishEarly}
-          canUndo={history.length > 0}
-        />
-      )}
-      {screen === 'top5' && (
-        <Top5Screen
-          veryImportant={piles.veryImportant}
-          onConfirm={handleTop5Confirm}
-        />
-      )}
-      {screen === 'results' && (
-        <ResultsScreen
-          piles={piles}
-          top5Ids={top5Ids}
-          email={email}
-          onStartOver={handleStartOver}
-          friendPiles={friendPiles}
-          pastResults={pastResults}
-        />
-      )}
+      <div className="app-content">
+        {screen === 'intro' && (
+          <IntroScreen
+            email={email}
+            setEmail={setEmail}
+            onStart={handleStart}
+            savedProgress={savedProgress}
+            onResume={handleResume}
+            friendName={friendName}
+          />
+        )}
+        {screen === 'sorting' && (
+          <SortingScreen
+            currentCard={currentCard}
+            totalCards={totalCards}
+            sortedCount={sortedCount}
+            piles={piles}
+            onSort={handleSort}
+            onUndo={handleUndo}
+            onFinishEarly={handleFinishEarly}
+            canUndo={history.length > 0}
+          />
+        )}
+        {screen === 'top5' && (
+          <Top5Screen
+            veryImportant={piles.veryImportant}
+            onConfirm={handleTop5Confirm}
+          />
+        )}
+        {screen === 'results' && (
+          <ResultsScreen
+            piles={piles}
+            top5Ids={top5Ids}
+            email={email}
+            onStartOver={handleStartOver}
+            friendPiles={friendPiles}
+            pastResults={pastResults}
+          />
+        )}
+      </div>
+      <SiteFooter />
     </div>
   );
 }
