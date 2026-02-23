@@ -14,6 +14,8 @@ import './App.css';
 
 // --- Constants ---
 
+const LOGO_URL = 'https://images.squarespace-cdn.com/content/68138d98b173884d75ec5456/3eb007bc-2889-4fea-9e9c-6f6f1bcb2b29/NameOnlyScript.png?content-type=image%2Fpng';
+
 const STORAGE_KEY = 'values-sort-progress';
 const HISTORY_KEY = 'values-sort-history';
 const TOP5_LIMIT = 5;
@@ -171,7 +173,7 @@ function SiteFooter() {
     <footer className="site-footer">
       <div className="footer-brand">
         <a href="https://alisonrose.nl" target="_blank" rel="noopener noreferrer" className="footer-logo-link">
-          <img src="/logo.png" alt="Alison Rose" className="footer-logo" />
+          <img src={LOGO_URL} alt="Alison Rose" className="footer-logo" />
         </a>
       </div>
       <div className="footer-disclaimer">
@@ -198,7 +200,7 @@ function IntroScreen({ email, setEmail, onStart, savedProgress, onResume, friend
   return (
     <div className="intro">
       <a href="https://alisonrose.nl" target="_blank" rel="noopener noreferrer" className="intro-brand-link">
-        <img src="/logo.png" alt="Alison Rose" className="intro-logo" />
+        <img src={LOGO_URL} alt="Alison Rose" className="intro-logo" />
       </a>
       <p className="brand-presents">presents</p>
       <h1>Personal Values Card Sort</h1>
@@ -592,7 +594,7 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
 
   return (
     <div className="results-screen">
-      <img src="/logo.png" alt="Alison Rose" className="results-logo" />
+      <img src={LOGO_URL} alt="Alison Rose" className="results-logo" />
       <h1>Your Results</h1>
       <p className="results-subtitle">
         Here&rsquo;s how you sorted your personal values
