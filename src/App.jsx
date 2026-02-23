@@ -548,17 +548,17 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
     // Top 5 or Very Important
     const displayValues = top5Values.length > 0 ? top5Values : piles.veryImportant.slice(0, 10);
 
-    // Branding — draw logo image first, then values
-    const logoImg = new Image();
-    logoImg.crossOrigin = 'anonymous';
-    logoImg.onload = () => {
+    // Fetch logo as blob to avoid CORS tainting the canvas
+    const drawImage = (logoImg) => {
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
 
       // Logo at top
-      const logoH = 32;
-      const logoW = logoImg.naturalWidth * (logoH / logoImg.naturalHeight);
-      ctx.drawImage(logoImg, (w - logoW) / 2, 24, logoW, logoH);
+      if (logoImg) {
+        const logoH = 32;
+        const logoW = logoImg.naturalWidth * (logoH / logoImg.naturalHeight);
+        ctx.drawImage(logoImg, (w - logoW) / 2, 24, logoW, logoH);
+      }
 
       // Header
       ctx.fillStyle = '#507271';
@@ -622,7 +622,19 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
         }
       }, 'image/png');
     };
-    logoImg.src = LOGO_URL;
+
+    // Fetch logo as blob to avoid CORS canvas tainting on mobile
+    fetch(LOGO_URL)
+      .then((r) => r.blob())
+      .then((blob) => {
+        const logoImg = new Image();
+        logoImg.onload = () => {
+          URL.revokeObjectURL(logoImg.src);
+          drawImage(logoImg);
+        };
+        logoImg.src = URL.createObjectURL(blob);
+      })
+      .catch(() => drawImage(null));
   }, [piles, top5Values]);
 
   return (
