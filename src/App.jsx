@@ -570,27 +570,31 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
       ctx.fillText(v.description, 125 + ctx.measureText(v.title).width + 12, y + 26);
     });
 
-    // Branding
-    const brandY = h - 55;
-    ctx.fillStyle = '#B6873F';
-    ctx.font = '22px cursive';
-    ctx.textAlign = 'center';
-    ctx.fillText('Alison Rose', w / 2, brandY);
+    // Branding — draw logo image
+    const brandY = h - 70;
+    const logoImg = new Image();
+    logoImg.crossOrigin = 'anonymous';
+    logoImg.onload = () => {
+      const logoH = 30;
+      const logoW = logoImg.naturalWidth * (logoH / logoImg.naturalHeight);
+      ctx.drawImage(logoImg, (w - logoW) / 2, brandY, logoW, logoH);
 
-    // Footer
-    const footerY = h - 30;
-    ctx.fillStyle = '#0E0D0C';
-    ctx.font = '11px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.globalAlpha = 0.4;
-    ctx.fillText('alisonrose.nl  |  Personal Values Card Sort', w / 2, footerY);
-    ctx.globalAlpha = 1;
+      // Footer
+      const footerY = h - 30;
+      ctx.fillStyle = '#0E0D0C';
+      ctx.font = '11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.globalAlpha = 0.4;
+      ctx.fillText('alisonrose.nl  |  Personal Values Card Sort', w / 2, footerY);
+      ctx.globalAlpha = 1;
 
-    // Download
-    const link = document.createElement('a');
-    link.download = 'my-values.png';
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+      // Download
+      const link = document.createElement('a');
+      link.download = 'my-values.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    };
+    logoImg.src = LOGO_URL;
   }, [piles, top5Values]);
 
   return (
