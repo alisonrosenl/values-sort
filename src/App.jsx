@@ -607,11 +607,20 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
       ctx.textAlign = 'center';
       ctx.fillText('alisonrose.nl', w / 2, h - 20);
 
-      // Download
-      const link = document.createElement('a');
-      link.download = 'MyValuesSortResults.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+      // Download / Share
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const file = new File([blob], 'MyValuesSortResults.png', { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file] }).catch(() => {});
+        } else {
+          const link = document.createElement('a');
+          link.download = 'MyValuesSortResults.png';
+          link.href = URL.createObjectURL(blob);
+          link.click();
+          URL.revokeObjectURL(link.href);
+        }
+      }, 'image/png');
     };
     logoImg.src = LOGO_URL;
   }, [piles, top5Values]);
