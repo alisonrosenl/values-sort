@@ -297,6 +297,21 @@ function ResultsScreen({ piles, email, onStartOver }) {
   );
 }
 
+// --- Kit (email marketing) ---
+
+const KIT_FORM_ID = '6d4949227';
+const KIT_API_KEY = 'kit_78fe85509592cf5f7d88825770dc561e';
+
+function subscribeToKit(email) {
+  fetch(`https://api.convertkit.com/v3/forms/${KIT_FORM_ID}/subscribe`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ api_key: KIT_API_KEY, email }),
+  }).catch(() => {
+    // Silently ignore — don't disrupt the user experience
+  });
+}
+
 // --- Main App ---
 
 function App() {
@@ -314,10 +329,13 @@ function App() {
   const currentCard = cards[0] || null;
 
   const handleStart = useCallback(() => {
+    if (email) {
+      subscribeToKit(email);
+    }
     setCards(shuffle(values));
     setPiles({ veryImportant: [], important: [], notImportant: [] });
     setScreen('sorting');
-  }, []);
+  }, [email]);
 
   const handleSort = useCallback(
     (pileId) => {
