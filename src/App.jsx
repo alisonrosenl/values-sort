@@ -171,7 +171,7 @@ function SiteFooter() {
     <footer className="site-footer">
       <div className="footer-brand">
         <a href="https://alisonrose.nl" target="_blank" rel="noopener noreferrer" className="footer-logo-link">
-          <span className="brand-script">Alison Rose</span>
+          <img src="/logo.png" alt="Alison Rose" className="footer-logo" />
         </a>
       </div>
       <div className="footer-disclaimer">
@@ -198,7 +198,7 @@ function IntroScreen({ email, setEmail, onStart, savedProgress, onResume, friend
   return (
     <div className="intro">
       <a href="https://alisonrose.nl" target="_blank" rel="noopener noreferrer" className="intro-brand-link">
-        <span className="brand-script brand-script-large">Alison Rose</span>
+        <img src="/logo.png" alt="Alison Rose" className="intro-logo" />
       </a>
       <p className="brand-presents">presents</p>
       <h1>Personal Values Card Sort</h1>
@@ -592,7 +592,7 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
 
   return (
     <div className="results-screen">
-      <span className="brand-script results-brand">Alison Rose</span>
+      <img src="/logo.png" alt="Alison Rose" className="results-logo" />
       <h1>Your Results</h1>
       <p className="results-subtitle">
         Here&rsquo;s how you sorted your personal values

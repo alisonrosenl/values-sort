@@ -12,18 +12,9 @@
 
 /* ========== Brand ========== */
 
-.brand-script {
-  font-family: 'Alex Brush', cursive;
-  color: #0E0D0C;
-  display: inline-block;
-}
-
-.brand-script-large {
-  font-size: 3rem;
-}
-
 .intro-brand-link {
   text-decoration: none;
+  display: block;
   transition: opacity 0.2s;
 }
 
@@ -31,21 +22,27 @@
   opacity: 0.7;
 }
 
+.intro-logo {
+  height: 60px;
+  width: auto;
+  display: block;
+}
+
 .brand-presents {
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.2em;
   color: #B6873F;
+  margin-top: 0.5rem;
   margin-bottom: 1.5rem;
   font-weight: 500;
 }
 
-.results-brand {
+.results-logo {
   display: block;
-  text-align: center;
-  font-size: 1.8rem;
-  color: #B6873F;
-  margin-bottom: 0.25rem;
+  height: 36px;
+  width: auto;
+  margin: 0 auto 0.25rem;
 }
 
 /* ========== Intro Screen ========== */
@@ -876,12 +873,13 @@
 /* ========== Site Footer ========== */
 
 .site-footer {
-  background: #0E0D0C;
-  color: rgba(255, 255, 255, 0.6);
+  background: #D6E1DD;
+  color: #0E0D0C;
   padding: 2rem 1.5rem;
   text-align: center;
   font-size: 0.78rem;
   line-height: 1.7;
+  border-top: 1px solid #c5d4cf;
 }
 
 .footer-brand {
@@ -890,16 +888,17 @@
 
 .footer-logo-link {
   text-decoration: none;
-}
-
-.footer-logo-link .brand-script {
-  font-size: 1.6rem;
-  color: #B6873F;
+  display: inline-block;
   transition: opacity 0.2s;
 }
 
-.footer-logo-link:hover .brand-script {
-  opacity: 0.8;
+.footer-logo-link:hover {
+  opacity: 0.7;
+}
+
+.footer-logo {
+  height: 32px;
+  width: auto;
 }
 
 .footer-disclaimer {
@@ -907,12 +906,14 @@
   margin: 0 auto 1.25rem;
   font-size: 0.72rem;
   line-height: 1.7;
-  opacity: 0.5;
+  opacity: 0.55;
+  color: #0E0D0C;
 }
 
 .footer-links {
   font-size: 0.72rem;
-  opacity: 0.45;
+  opacity: 0.5;
+  color: #0E0D0C;
 }
 
 .footer-links a {
@@ -1022,17 +1023,8 @@
 
   .site-footer {
     background: white !important;
-    color: #333 !important;
     border-top: 1px solid #ccc;
     padding: 1rem;
-  }
-
-  .footer-logo-link .brand-script {
-    color: #333;
-  }
-
-  .footer-disclaimer {
-    opacity: 0.6;
   }
 
   .results-screen {
