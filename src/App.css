@@ -873,17 +873,17 @@
 /* ========== Site Footer ========== */
 
 .site-footer {
-  background: #D6E1DD;
+  background: #A4BAB0;
   color: #0E0D0C;
-  padding: 2rem 1.5rem;
+  padding: 1.25rem 1.5rem;
   text-align: center;
-  font-size: 0.78rem;
-  line-height: 1.7;
-  border-top: 1px solid #c5d4cf;
+  font-size: 0.65rem;
+  line-height: 1.6;
+  border-top: 1px solid #93a99f;
 }
 
 .footer-brand {
-  margin-bottom: 1rem;
+  margin-bottom: 0.6rem;
 }
 
 .footer-logo-link {
@@ -897,21 +897,21 @@
 }
 
 .footer-logo {
-  height: 32px;
+  height: 22px;
   width: auto;
 }
 
 .footer-disclaimer {
   max-width: 540px;
-  margin: 0 auto 1.25rem;
-  font-size: 0.72rem;
-  line-height: 1.7;
+  margin: 0 auto 0.75rem;
+  font-size: 0.6rem;
+  line-height: 1.6;
   opacity: 0.55;
   color: #0E0D0C;
 }
 
 .footer-links {
-  font-size: 0.72rem;
+  font-size: 0.6rem;
   opacity: 0.5;
   color: #0E0D0C;
 }
