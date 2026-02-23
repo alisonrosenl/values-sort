@@ -515,10 +515,12 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
+    const scale = 2;
     const w = 800;
     const h = 600;
-    canvas.width = w;
-    canvas.height = h;
+    canvas.width = w * scale;
+    canvas.height = h * scale;
+    ctx.scale(scale, scale);
 
     // Background
     ctx.fillStyle = '#FFFDFC';
@@ -575,6 +577,8 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
     const logoImg = new Image();
     logoImg.crossOrigin = 'anonymous';
     logoImg.onload = () => {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
       const logoH = 30;
       const logoW = logoImg.naturalWidth * (logoH / logoImg.naturalHeight);
       ctx.drawImage(logoImg, (w - logoW) / 2, brandY, logoW, logoH);
