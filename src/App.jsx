@@ -126,7 +126,7 @@ function IntroScreen({ email, setEmail, onStart }) {
   );
 }
 
-function SortingScreen({ currentCard, totalCards, sortedCount, piles, onSort }) {
+function SortingScreen({ currentCard, totalCards, sortedCount, piles, onSort, onUndo, onFinishEarly, canUndo }) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
@@ -206,6 +206,19 @@ function SortingScreen({ currentCard, totalCards, sortedCount, piles, onSort }) 
             >
               Very Important
             </button>
+          </div>
+
+          <div className="sort-actions">
+            {canUndo && (
+              <button className="btn btn-undo" onClick={onUndo}>
+                Undo
+              </button>
+            )}
+            {sortedCount > 0 && (
+              <button className="btn btn-finish-early" onClick={onFinishEarly}>
+                Finish Early
+              </button>
+            )}
           </div>
 
           <p className="sort-hint">
@@ -335,6 +348,7 @@ function App() {
     important: [],
     notImportant: [],
   });
+  const [history, setHistory] = useState([]);
 
   const totalCards = values.length;
   const sortedCount = totalCards - cards.length;
@@ -346,6 +360,7 @@ function App() {
     }
     setCards(shuffle(values));
     setPiles({ veryImportant: [], important: [], notImportant: [] });
+    setHistory([]);
     setScreen('sorting');
   }, [email]);
 
@@ -353,6 +368,7 @@ function App() {
     (pileId) => {
       if (!cards.length) return;
       const card = cards[0];
+      setHistory((prev) => [...prev, { card, pileId }]);
       setPiles((prev) => ({
         ...prev,
         [pileId]: [...prev[pileId], card],
@@ -366,9 +382,25 @@ function App() {
     [cards]
   );
 
+  const handleUndo = useCallback(() => {
+    if (!history.length) return;
+    const last = history[history.length - 1];
+    setHistory((prev) => prev.slice(0, -1));
+    setPiles((prev) => ({
+      ...prev,
+      [last.pileId]: prev[last.pileId].slice(0, -1),
+    }));
+    setCards((prev) => [last.card, ...prev]);
+  }, [history]);
+
+  const handleFinishEarly = useCallback(() => {
+    setScreen('results');
+  }, []);
+
   const handleStartOver = useCallback(() => {
     setCards([]);
     setPiles({ veryImportant: [], important: [], notImportant: [] });
+    setHistory([]);
     setScreen('intro');
   }, []);
 
@@ -388,6 +420,9 @@ function App() {
           sortedCount={sortedCount}
           piles={piles}
           onSort={handleSort}
+          onUndo={handleUndo}
+          onFinishEarly={handleFinishEarly}
+          canUndo={history.length > 0}
         />
       )}
       {screen === 'results' && (

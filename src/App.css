@@ -252,11 +252,11 @@
   min-height: 140px;
   border: 2px dashed #D6E1DD;
   border-radius: 12px;
-  padding: 1.25rem;
+  padding: 1rem 1.25rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   text-align: center;
   transition: all 0.2s;
   background: rgba(214, 225, 221, 0.15);
@@ -270,6 +270,9 @@
 .pile .pile-count {
   font-size: 0.85rem;
   opacity: 0.6;
+  position: relative;
+  z-index: 2;
+  margin-bottom: 0.25rem;
 }
 
 .pile.pile-has-cards {
@@ -400,6 +403,38 @@
 
 .btn-very-important:hover {
   background: #3d7a5f;
+}
+
+.sort-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.btn-undo {
+  background: transparent;
+  color: #888;
+  border: 1px solid #D6E1DD;
+  font-size: 0.85rem;
+  padding: 0.4rem 1rem;
+}
+
+.btn-undo:hover {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.btn-finish-early {
+  background: transparent;
+  color: #888;
+  border: 1px solid #D6E1DD;
+  font-size: 0.85rem;
+  padding: 0.4rem 1rem;
+}
+
+.btn-finish-early:hover {
+  background: #f0f0f0;
+  color: #666;
 }
 
 .sort-hint {
