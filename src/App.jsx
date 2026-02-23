@@ -256,7 +256,7 @@ function IntroScreen({ email, setEmail, emailConsent, setEmailConsent, onStart, 
         <button
           className="btn btn-primary"
           onClick={onStart}
-          disabled={!email || !email.includes('@') || !emailConsent}
+          disabled={!email || !email.includes('@')}
         >
           Begin Sorting
         </button>
@@ -352,6 +352,10 @@ function SortingScreen({ currentCard, totalCards, sortedCount, piles, onSort, on
             <DraggableCard key={currentCard.id} card={currentCard} />
           </div>
 
+          <p className="sort-hint">
+            Drag the card, tap a button, or press 1 / 2 / 3
+          </p>
+
           <div className="piles-container">
             <DroppablePile
               id="notImportant"
@@ -406,10 +410,6 @@ function SortingScreen({ currentCard, totalCards, sortedCount, piles, onSort, on
               </button>
             )}
           </div>
-
-          <p className="sort-hint">
-            Drag the card, tap a button, or press 1 / 2 / 3
-          </p>
         </div>
       </DndContext>
     </div>
@@ -849,7 +849,7 @@ function App() {
   }, [screen, cards, piles, history, email, sortedCount]);
 
   const handleStart = useCallback(() => {
-    if (email) {
+    if (email && emailConsent) {
       subscribeToKit(email);
     }
     setCards(shuffle(values));
@@ -859,7 +859,7 @@ function App() {
     setSavedProgress(null);
     clearProgress();
     setScreen('sorting');
-  }, [email]);
+  }, [email, emailConsent]);
 
   const handleResume = useCallback(() => {
     if (!savedProgress) return;
