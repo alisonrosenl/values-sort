@@ -521,7 +521,7 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
     canvas.height = h;
 
     // Background
-    ctx.fillStyle = '#F5F1EB';
+    ctx.fillStyle = '#FFFDFC';
     ctx.fillRect(0, 0, w, h);
 
     // Header
