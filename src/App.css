@@ -159,7 +159,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2rem;
+  gap: 1.25rem;
   padding: 1rem;
 }
 
@@ -293,7 +293,7 @@
 .pile-stack {
   position: relative;
   width: 100%;
-  height: 72px;
+  height: 120px;
   margin-top: 0.5rem;
 }
 
@@ -301,27 +301,27 @@
   position: absolute;
   left: 50%;
   bottom: 0;
-  width: 85%;
-  height: 60px;
+  width: 90%;
+  aspect-ratio: 14 / 9;
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(14, 13, 12, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(14, 13, 12, 0.1);
   transform: translateX(-50%);
   transition: all 0.3s ease;
 }
 
 .pile-stack-card-3 {
-  transform: translateX(-50%) rotate(-2deg);
-  bottom: 8px;
+  transform: translateX(-50%) rotate(-2.5deg);
+  bottom: 10px;
   opacity: 0.4;
-  width: 78%;
+  width: 82%;
 }
 
 .pile-stack-card-2 {
-  transform: translateX(-50%) rotate(1.5deg);
-  bottom: 4px;
+  transform: translateX(-50%) rotate(1.8deg);
+  bottom: 5px;
   opacity: 0.65;
-  width: 82%;
+  width: 86%;
 }
 
 .pile-stack-card-1 {
@@ -332,13 +332,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem;
+  padding: 0.75rem;
   overflow: hidden;
 }
 
 .pile-stack-title {
   font-weight: 600;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   letter-spacing: 0.03em;
   color: #0E0D0C;
   white-space: nowrap;
@@ -348,7 +348,7 @@
 }
 
 .pile-stack-desc {
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   color: #0E0D0C;
   opacity: 0.55;
   font-style: italic;
@@ -356,6 +356,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+  margin-top: 0.2rem;
 }
 
 /* Quick-sort buttons */
@@ -554,11 +555,7 @@
   }
 
   .pile-stack {
-    height: 56px;
-  }
-
-  .pile-stack-card {
-    height: 48px;
+    height: 80px;
   }
 
   .results-columns {
