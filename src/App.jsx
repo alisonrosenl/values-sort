@@ -418,12 +418,23 @@ function App() {
   const currentCard = cards[0] || null;
 
   const handleStart = useCallback(() => {
+    // Subscribe to Kit form if configured
+    const apiKey = import.meta.env.VITE_KIT_API_KEY;
+    const formId = import.meta.env.VITE_KIT_FORM_ID;
+    if (apiKey && formId && email) {
+      fetch(`https://api.convertkit.com/v3/forms/${formId}/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: apiKey, email }),
+      }).catch(() => {});
+    }
+
     setCards(shuffle(values));
     setPiles({ veryImportant: [], important: [], notImportant: [] });
     setTop10([]);
     setTop5([]);
     setScreen('sorting');
-  }, []);
+  }, [email]);
 
   const handleSort = useCallback(
     (pileId) => {
