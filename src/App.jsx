@@ -711,7 +711,18 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
 
       {pastResults.length > 1 && (
         <div className="history-section">
-          <h2>Your Sort History</h2>
+          <div className="history-header">
+            <h2>Your Sort History</h2>
+            <button
+              className="clear-history-link"
+              onClick={() => {
+                try { localStorage.removeItem(HISTORY_KEY); } catch {}
+                setPastResults([]);
+              }}
+            >
+              Clear history
+            </button>
+          </div>
           <div className="history-list">
             {pastResults.slice().reverse().map((r, i) => (
               <div key={i} className="history-item">

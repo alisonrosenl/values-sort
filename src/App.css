@@ -830,10 +830,33 @@
   margin-bottom: 2rem;
 }
 
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
 .history-section h2 {
   font-size: 1.15rem;
-  margin-bottom: 1rem;
+  margin: 0;
   text-align: center;
+}
+
+.clear-history-link {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.clear-history-link:hover {
+  color: #B6873F;
 }
 
 .history-list {
