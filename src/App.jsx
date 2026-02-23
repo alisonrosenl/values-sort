@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   DndContext,
   useDraggable,
@@ -12,6 +12,27 @@ import {
 import values from './data/values';
 import './App.css';
 
+// --- Constants ---
+
+const STORAGE_KEY = 'values-sort-progress';
+const HISTORY_KEY = 'values-sort-history';
+const TOP5_LIMIT = 5;
+
+const VALUE_CONFLICTS = [
+  ['ACHIEVEMENT', 'INNER PEACE'],
+  ['AUTHORITY', 'HUMILITY'],
+  ['AUTONOMY', 'COOPERATION'],
+  ['ADVENTURE', 'SAFETY'],
+  ['COMFORT', 'CHALLENGE'],
+  ['SOLITUDE', 'POPULARITY'],
+  ['WEALTH', 'GENEROSITY'],
+  ['RATIONALITY', 'PASSION'],
+  ['ORDER', 'CHANGE'],
+  ['MODERATION', 'ADVENTURE'],
+  ['COMMITMENT', 'AUTONOMY'],
+  ['ROMANCE', 'SOLITUDE'],
+];
+
 // --- Utilities ---
 
 function shuffle(array) {
@@ -21,6 +42,67 @@ function shuffle(array) {
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
   return shuffled;
+}
+
+function saveProgress(data) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch {}
+}
+
+function loadProgress() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearProgress() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {}
+}
+
+function saveToHistory(result) {
+  try {
+    const existing = loadHistory();
+    existing.push(result);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(existing));
+  } catch {}
+}
+
+function loadHistory() {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function encodeResults(piles) {
+  const compact = {
+    v: piles.veryImportant.map((v) => v.id),
+    i: piles.important.map((v) => v.id),
+    n: piles.notImportant.map((v) => v.id),
+  };
+  return btoa(JSON.stringify(compact));
+}
+
+function decodeResults(encoded) {
+  try {
+    const compact = JSON.parse(atob(encoded));
+    const findValue = (id) => values.find((v) => v.id === id);
+    return {
+      veryImportant: (compact.v || []).map(findValue).filter(Boolean),
+      important: (compact.i || []).map(findValue).filter(Boolean),
+      notImportant: (compact.n || []).map(findValue).filter(Boolean),
+    };
+  } catch {
+    return null;
+  }
 }
 
 // --- Draggable Card ---
@@ -84,11 +166,19 @@ function DroppablePile({ id, label, cards, className }) {
 
 // --- Screens ---
 
-function IntroScreen({ email, setEmail, onStart }) {
+function IntroScreen({ email, setEmail, onStart, savedProgress, onResume, friendName }) {
   return (
     <div className="intro">
       <h1>Personal Values Card Sort</h1>
       <p className="subtitle">Discover what matters most to you</p>
+
+      {friendName && (
+        <div className="compare-banner">
+          <strong>{friendName}</strong> invited you to compare values!
+          Complete your sort to see how you match up.
+        </div>
+      )}
+
       <p className="attribution">
         Based on the Personal Values Card Sort by<br />
         W.R. Miller, J. C&rsquo;de Baca, D.B. Matthews, P.L. Wilbourne<br />
@@ -105,7 +195,7 @@ function IntroScreen({ email, setEmail, onStart }) {
           <strong>Not Important to Me</strong>
         </p>
         <p style={{ marginTop: '0.75rem' }}>
-          Drag each card to a pile, or use the buttons below the card.
+          Drag each card to a pile, use the buttons, or press <strong>1</strong>, <strong>2</strong>, <strong>3</strong> on your keyboard.
           Go with your gut &mdash; there are no right or wrong answers.
         </p>
       </div>
@@ -120,13 +210,23 @@ function IntroScreen({ email, setEmail, onStart }) {
           required
         />
       </div>
-      <button
-        className="btn btn-primary"
-        onClick={onStart}
-        disabled={!email || !email.includes('@')}
-      >
-        Begin Sorting
-      </button>
+      <div className="intro-actions">
+        <button
+          className="btn btn-primary"
+          onClick={onStart}
+          disabled={!email || !email.includes('@')}
+        >
+          Begin Sorting
+        </button>
+        {savedProgress && (
+          <button
+            className="btn btn-secondary"
+            onClick={onResume}
+          >
+            Resume Previous Sort ({savedProgress.sortedCount} / {values.length} done)
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -140,13 +240,50 @@ function SortingScreen({ currentCard, totalCards, sortedCount, piles, onSort, on
 
   const handleDragEnd = useCallback(
     (event) => {
-      const { over } = event;
+      const { over, delta } = event;
       if (over) {
         onSort(over.id);
+        return;
+      }
+      // Swipe gesture fallback — if not dropped on a pile, use horizontal direction
+      if (Math.abs(delta.x) > 60) {
+        if (delta.x < -60) {
+          onSort('notImportant');
+        } else if (delta.x > 60) {
+          onSort('veryImportant');
+        }
+      } else if (delta.y > 60) {
+        onSort('important');
       }
     },
     [onSort]
   );
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      switch (e.key) {
+        case '1':
+          onSort('notImportant');
+          break;
+        case '2':
+          onSort('important');
+          break;
+        case '3':
+          onSort('veryImportant');
+          break;
+        case 'z':
+          if ((e.ctrlKey || e.metaKey) && canUndo) {
+            e.preventDefault();
+            onUndo();
+          }
+          break;
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onSort, onUndo, canUndo]);
 
   if (!currentCard) return null;
 
@@ -197,19 +334,19 @@ function SortingScreen({ currentCard, totalCards, sortedCount, piles, onSort, on
               className="btn btn-not-important"
               onClick={() => onSort('notImportant')}
             >
-              Not Important
+              Not Important <span className="key-hint">1</span>
             </button>
             <button
               className="btn btn-important"
               onClick={() => onSort('important')}
             >
-              Important
+              Important <span className="key-hint">2</span>
             </button>
             <button
               className="btn btn-very-important"
               onClick={() => onSort('veryImportant')}
             >
-              Very Important
+              Very Important <span className="key-hint">3</span>
             </button>
           </div>
 
@@ -227,7 +364,7 @@ function SortingScreen({ currentCard, totalCards, sortedCount, piles, onSort, on
           </div>
 
           <p className="sort-hint">
-            Drag the card to a pile, or tap a button
+            Drag the card, tap a button, or press 1 / 2 / 3
           </p>
         </div>
       </DndContext>
@@ -235,15 +372,79 @@ function SortingScreen({ currentCard, totalCards, sortedCount, piles, onSort, on
   );
 }
 
-function ResultsScreen({ piles, email, onStartOver }) {
+function Top5Screen({ veryImportant, onConfirm }) {
+  const [selected, setSelected] = useState(() =>
+    veryImportant.slice(0, TOP5_LIMIT).map((v) => v.id)
+  );
+
+  const toggle = (id) => {
+    setSelected((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= TOP5_LIMIT) return prev;
+      return [...prev, id];
+    });
+  };
+
+  return (
+    <div className="top5-screen">
+      <h1>Choose Your Top 5</h1>
+      <p className="top5-subtitle">
+        You marked <strong>{veryImportant.length}</strong> values as very important.
+        Now narrow it down to the <strong>{TOP5_LIMIT}</strong> that matter most.
+      </p>
+      <p className="top5-count">
+        {selected.length} of {TOP5_LIMIT} selected
+      </p>
+      <div className="top5-grid">
+        {veryImportant.map((v) => (
+          <button
+            key={v.id}
+            className={`top5-card ${selected.includes(v.id) ? 'top5-selected' : ''}`}
+            onClick={() => toggle(v.id)}
+          >
+            <div className="top5-card-title">{v.title}</div>
+            <div className="top5-card-desc">{v.description}</div>
+          </button>
+        ))}
+      </div>
+      <div className="top5-actions">
+        <button
+          className="btn btn-primary"
+          onClick={() => onConfirm(selected)}
+          disabled={selected.length !== TOP5_LIMIT}
+        >
+          Confirm My Top {TOP5_LIMIT}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastResults }) {
+  const canvasRef = useRef(null);
+
+  const top5Values = top5Ids.length > 0
+    ? piles.veryImportant.filter((v) => top5Ids.includes(v.id))
+    : [];
+
+  // Detect value conflicts
+  const conflicts = VALUE_CONFLICTS.filter(([a, b]) => {
+    const topTitles = piles.veryImportant.map((v) => v.title);
+    return topTitles.includes(a) && topTitles.includes(b);
+  });
+
   const handleEmailResults = useCallback(() => {
-    // Build results text
     const buildList = (items) =>
       items.map((v) => `  - ${v.title}: ${v.description}`).join('\n');
+
+    const top5Section = top5Values.length > 0
+      ? [`\nMY TOP 5 VALUES:`, buildList(top5Values), '']
+      : [];
 
     const body = [
       'PERSONAL VALUES CARD SORT RESULTS',
       '==================================\n',
+      ...top5Section,
       `VERY IMPORTANT TO ME (${piles.veryImportant.length}):`,
       buildList(piles.veryImportant),
       `\nIMPORTANT TO ME (${piles.important.length}):`,
@@ -259,7 +460,102 @@ function ResultsScreen({ piles, email, onStartOver }) {
     const subject = 'My Personal Values Card Sort Results';
     const mailtoLink = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(mailtoLink, '_blank');
+  }, [piles, email, top5Values]);
+
+  const handleShare = useCallback(() => {
+    const encoded = encodeResults(piles);
+    const name = email.split('@')[0];
+    const url = `${window.location.origin}${window.location.pathname}?compare=${encoded}&from=${encodeURIComponent(name)}`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: 'Compare our values!',
+        text: 'I just did a personal values card sort. Take it and compare your results with mine!',
+        url,
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url).then(() => {
+        alert('Link copied to clipboard! Share it with a friend.');
+      }).catch(() => {
+        prompt('Copy this link to share:', url);
+      });
+    }
   }, [piles, email]);
+
+  const handleDownloadImage = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const w = 800;
+    const h = 600;
+    canvas.width = w;
+    canvas.height = h;
+
+    // Background
+    ctx.fillStyle = '#F5F1EB';
+    ctx.fillRect(0, 0, w, h);
+
+    // Header
+    ctx.fillStyle = '#0E0D0C';
+    ctx.font = 'bold 28px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('My Top Values', w / 2, 50);
+
+    // Divider
+    ctx.strokeStyle = '#B6873F';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(w / 4, 65);
+    ctx.lineTo((3 * w) / 4, 65);
+    ctx.stroke();
+
+    // Top 5 or Very Important
+    const displayValues = top5Values.length > 0 ? top5Values : piles.veryImportant.slice(0, 10);
+    const startY = 100;
+
+    displayValues.forEach((v, i) => {
+      const y = startY + i * 48;
+      // Card background
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      ctx.roundRect(80, y, w - 160, 40, 4);
+      ctx.fill();
+      ctx.strokeStyle = '#D6E1DD';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Number
+      ctx.fillStyle = '#B6873F';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`${i + 1}.`, 95, y + 26);
+
+      // Title
+      ctx.fillStyle = '#0E0D0C';
+      ctx.font = 'bold 15px sans-serif';
+      ctx.fillText(v.title, 125, y + 26);
+
+      // Description
+      ctx.fillStyle = '#888';
+      ctx.font = 'italic 12px sans-serif';
+      ctx.fillText(v.description, 125 + ctx.measureText(v.title).width + 12, y + 26);
+    });
+
+    // Footer
+    const footerY = h - 30;
+    ctx.fillStyle = '#0E0D0C';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.globalAlpha = 0.4;
+    ctx.fillText('Personal Values Card Sort — Miller, C\'de Baca, Matthews, Wilbourne (2001)', w / 2, footerY);
+    ctx.globalAlpha = 1;
+
+    // Download
+    const link = document.createElement('a');
+    link.download = 'my-values.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }, [piles, top5Values]);
 
   return (
     <div className="results-screen">
@@ -267,6 +563,65 @@ function ResultsScreen({ piles, email, onStartOver }) {
       <p className="results-subtitle">
         Here&rsquo;s how you sorted your personal values
       </p>
+
+      {top5Values.length > 0 && (
+        <div className="top5-results">
+          <h2>Your Top {TOP5_LIMIT}</h2>
+          <div className="top5-results-list">
+            {top5Values.map((v, i) => (
+              <div key={v.id} className="top5-result-item">
+                <span className="top5-rank">{i + 1}</span>
+                <div>
+                  <div className="top5-result-title">{v.title}</div>
+                  <div className="top5-result-desc">{v.description}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {conflicts.length > 0 && (
+        <div className="conflicts-section">
+          <h2>Value Tensions</h2>
+          <p className="conflicts-intro">
+            These values you rated highly can sometimes pull in different directions.
+            Reflecting on how you balance them can deepen your self-understanding.
+          </p>
+          {conflicts.map(([a, b], i) => (
+            <div key={i} className="conflict-pair">
+              <span className="conflict-value">{a}</span>
+              <span className="conflict-vs">&harr;</span>
+              <span className="conflict-value">{b}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {friendPiles && (
+        <div className="comparison-section">
+          <h2>How You Compare</h2>
+          <div className="comparison-grid">
+            <div className="comparison-col">
+              <h3>Your Top Values</h3>
+              {piles.veryImportant.map((v) => (
+                <div key={v.id} className="comparison-item own">{v.title}</div>
+              ))}
+            </div>
+            <div className="comparison-col">
+              <h3>Their Top Values</h3>
+              {friendPiles.veryImportant.map((v) => {
+                const shared = piles.veryImportant.some((own) => own.id === v.id);
+                return (
+                  <div key={v.id} className={`comparison-item friend ${shared ? 'shared' : ''}`}>
+                    {v.title} {shared && '★'}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="results-columns">
         <div className="results-column col-very-important">
@@ -309,12 +664,40 @@ function ResultsScreen({ piles, email, onStartOver }) {
         </div>
       </div>
 
+      {pastResults.length > 1 && (
+        <div className="history-section">
+          <h2>Your Sort History</h2>
+          <div className="history-list">
+            {pastResults.slice().reverse().map((r, i) => (
+              <div key={i} className="history-item">
+                <span className="history-date">
+                  {new Date(r.date).toLocaleDateString()}
+                </span>
+                <span className="history-summary">
+                  {r.veryImportant.length} very important &middot;{' '}
+                  {r.important.length} important &middot;{' '}
+                  {r.notImportant.length} not important
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
+
       <div className="results-actions">
         <button className="btn btn-primary" onClick={handleEmailResults}>
           Email My Results
         </button>
         <button className="btn btn-primary" onClick={() => window.print()}>
           Print / Save PDF
+        </button>
+        <button className="btn btn-primary" onClick={handleDownloadImage}>
+          Download Image
+        </button>
+        <button className="btn btn-primary" onClick={handleShare}>
+          Invite a Friend
         </button>
         <button className="btn btn-secondary" onClick={onStartOver}>
           Start Over
@@ -340,9 +723,7 @@ function subscribeToKit(email) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ api_key: KIT_API_KEY, email }),
-  }).catch(() => {
-    // Silently ignore — don't disrupt the user experience
-  });
+  }).catch(() => {});
 }
 
 // --- Main App ---
@@ -357,10 +738,48 @@ function App() {
     notImportant: [],
   });
   const [history, setHistory] = useState([]);
+  const [top5Ids, setTop5Ids] = useState([]);
+  const [friendPiles, setFriendPiles] = useState(null);
+  const [friendName, setFriendName] = useState('');
+  const [pastResults, setPastResults] = useState([]);
+  const [savedProgress, setSavedProgress] = useState(null);
 
   const totalCards = values.length;
   const sortedCount = totalCards - cards.length;
   const currentCard = cards[0] || null;
+
+  // Load saved data on mount
+  useEffect(() => {
+    const saved = loadProgress();
+    if (saved) setSavedProgress(saved);
+
+    setPastResults(loadHistory());
+
+    // Check for friend comparison in URL
+    const params = new URLSearchParams(window.location.search);
+    const compareData = params.get('compare');
+    const fromName = params.get('from');
+    if (compareData) {
+      const decoded = decodeResults(compareData);
+      if (decoded) {
+        setFriendPiles(decoded);
+        if (fromName) setFriendName(decodeURIComponent(fromName));
+      }
+    }
+  }, []);
+
+  // Auto-save progress during sorting
+  useEffect(() => {
+    if (screen === 'sorting' && sortedCount > 0) {
+      saveProgress({
+        cards,
+        piles,
+        history,
+        email,
+        sortedCount,
+      });
+    }
+  }, [screen, cards, piles, history, email, sortedCount]);
 
   const handleStart = useCallback(() => {
     if (email) {
@@ -369,8 +788,21 @@ function App() {
     setCards(shuffle(values));
     setPiles({ veryImportant: [], important: [], notImportant: [] });
     setHistory([]);
+    setTop5Ids([]);
+    setSavedProgress(null);
+    clearProgress();
     setScreen('sorting');
   }, [email]);
+
+  const handleResume = useCallback(() => {
+    if (!savedProgress) return;
+    setCards(savedProgress.cards);
+    setPiles(savedProgress.piles);
+    setHistory(savedProgress.history);
+    if (savedProgress.email) setEmail(savedProgress.email);
+    setSavedProgress(null);
+    setScreen('sorting');
+  }, [savedProgress]);
 
   const handleSort = useCallback(
     (pileId) => {
@@ -384,10 +816,43 @@ function App() {
       const remaining = cards.slice(1);
       setCards(remaining);
       if (remaining.length === 0) {
-        setScreen('results');
+        clearProgress();
+        // Go to top5 if more than 5 very important, otherwise straight to results
+        const newVeryImportant = [...piles.veryImportant, ...(pileId === 'veryImportant' ? [card] : [])];
+        if (newVeryImportant.length > TOP5_LIMIT) {
+          setScreen('top5');
+        } else {
+          const finalPiles = {
+            ...piles,
+            [pileId]: [...piles[pileId], card],
+          };
+          setTop5Ids(finalPiles.veryImportant.map((v) => v.id));
+          saveResultToHistory(finalPiles);
+          setScreen('results');
+        }
       }
     },
-    [cards]
+    [cards, piles]
+  );
+
+  const saveResultToHistory = useCallback((finalPiles) => {
+    const result = {
+      date: new Date().toISOString(),
+      veryImportant: finalPiles.veryImportant.map((v) => ({ id: v.id, title: v.title })),
+      important: finalPiles.important.map((v) => ({ id: v.id, title: v.title })),
+      notImportant: finalPiles.notImportant.map((v) => ({ id: v.id, title: v.title })),
+    };
+    saveToHistory(result);
+    setPastResults(loadHistory());
+  }, []);
+
+  const handleTop5Confirm = useCallback(
+    (selectedIds) => {
+      setTop5Ids(selectedIds);
+      saveResultToHistory(piles);
+      setScreen('results');
+    },
+    [piles, saveResultToHistory]
   );
 
   const handleUndo = useCallback(() => {
@@ -402,13 +867,22 @@ function App() {
   }, [history]);
 
   const handleFinishEarly = useCallback(() => {
-    setScreen('results');
-  }, []);
+    clearProgress();
+    if (piles.veryImportant.length > TOP5_LIMIT) {
+      setScreen('top5');
+    } else {
+      setTop5Ids(piles.veryImportant.map((v) => v.id));
+      saveResultToHistory(piles);
+      setScreen('results');
+    }
+  }, [piles, saveResultToHistory]);
 
   const handleStartOver = useCallback(() => {
     setCards([]);
     setPiles({ veryImportant: [], important: [], notImportant: [] });
     setHistory([]);
+    setTop5Ids([]);
+    clearProgress();
     setScreen('intro');
   }, []);
 
@@ -419,6 +893,9 @@ function App() {
           email={email}
           setEmail={setEmail}
           onStart={handleStart}
+          savedProgress={savedProgress}
+          onResume={handleResume}
+          friendName={friendName}
         />
       )}
       {screen === 'sorting' && (
@@ -433,11 +910,20 @@ function App() {
           canUndo={history.length > 0}
         />
       )}
+      {screen === 'top5' && (
+        <Top5Screen
+          veryImportant={piles.veryImportant}
+          onConfirm={handleTop5Confirm}
+        />
+      )}
       {screen === 'results' && (
         <ResultsScreen
           piles={piles}
+          top5Ids={top5Ids}
           email={email}
           onStartOver={handleStartOver}
+          friendPiles={friendPiles}
+          pastResults={pastResults}
         />
       )}
     </div>
