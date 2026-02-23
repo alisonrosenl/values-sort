@@ -197,7 +197,7 @@ function SiteFooter() {
 
 // --- Screens ---
 
-function IntroScreen({ email, setEmail, onStart, savedProgress, onResume, friendName }) {
+function IntroScreen({ email, setEmail, emailConsent, setEmailConsent, onStart, savedProgress, onResume, friendName }) {
   return (
     <div className="intro">
       <a href="https://alisonrose.nl" target="_blank" rel="noopener noreferrer" className="intro-brand-link">
@@ -239,11 +239,24 @@ function IntroScreen({ email, setEmail, onStart, savedProgress, onResume, friend
           required
         />
       </div>
+      <label className="consent-checkbox">
+        <input
+          type="checkbox"
+          checked={emailConsent}
+          onChange={(e) => setEmailConsent(e.target.checked)}
+        />
+        <span>
+          I agree to receive emails from Alison Rose. View{' '}
+          <a href="https://www.alisonrose.nl/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+          {' '}&amp;{' '}
+          <a href="https://www.alisonrose.nl/terms-conditions" target="_blank" rel="noopener noreferrer">Terms</a>.
+        </span>
+      </label>
       <div className="intro-actions">
         <button
           className="btn btn-primary"
           onClick={onStart}
-          disabled={!email || !email.includes('@')}
+          disabled={!email || !email.includes('@') || !emailConsent}
         >
           Begin Sorting
         </button>
@@ -318,6 +331,7 @@ function SortingScreen({ currentCard, totalCards, sortedCount, piles, onSort, on
 
   return (
     <div className="sorting-screen">
+      <img src={LOGO_URL} alt="Alison Rose" className="sorting-logo" />
       <div className="progress-bar-container">
         <div className="progress-label">
           <span>Card {sortedCount + 1} of {totalCards}</span>
@@ -449,7 +463,7 @@ function Top5Screen({ veryImportant, onConfirm }) {
   );
 }
 
-function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastResults }) {
+function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastResults, setPastResults }) {
   const canvasRef = useRef(null);
 
   const top5Values = top5Ids.length > 0
@@ -467,7 +481,7 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
       items.map((v) => `  - ${v.title}: ${v.description}`).join('\n');
 
     const top5Section = top5Values.length > 0
-      ? [`\nMY TOP 5 VALUES:`, buildList(top5Values), '']
+      ? [`\nMY TOP ${top5Values.length} VALUES:`, buildList(top5Values), '']
       : [];
 
     const body = [
@@ -526,75 +540,75 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
     ctx.fillStyle = '#FFFDFC';
     ctx.fillRect(0, 0, w, h);
 
-    // Header
-    ctx.fillStyle = '#0E0D0C';
-    ctx.font = 'bold 28px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('My Top Values', w / 2, 50);
-
-    // Divider
-    ctx.strokeStyle = '#B6873F';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(w / 4, 65);
-    ctx.lineTo((3 * w) / 4, 65);
-    ctx.stroke();
+    // Top accent bar
+    ctx.fillStyle = '#D6E1DD';
+    ctx.fillRect(0, 0, w, 6);
 
     // Top 5 or Very Important
     const displayValues = top5Values.length > 0 ? top5Values : piles.veryImportant.slice(0, 10);
-    const startY = 100;
 
-    displayValues.forEach((v, i) => {
-      const y = startY + i * 48;
-      // Card background
-      ctx.fillStyle = 'white';
-      ctx.beginPath();
-      ctx.roundRect(80, y, w - 160, 40, 4);
-      ctx.fill();
-      ctx.strokeStyle = '#D6E1DD';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // Number
-      ctx.fillStyle = '#B6873F';
-      ctx.font = 'bold 16px sans-serif';
-      ctx.textAlign = 'left';
-      ctx.fillText(`${i + 1}.`, 95, y + 26);
-
-      // Title
-      ctx.fillStyle = '#0E0D0C';
-      ctx.font = 'bold 15px sans-serif';
-      ctx.fillText(v.title, 125, y + 26);
-
-      // Description
-      ctx.fillStyle = '#888';
-      ctx.font = 'italic 12px sans-serif';
-      ctx.fillText(v.description, 125 + ctx.measureText(v.title).width + 12, y + 26);
-    });
-
-    // Branding — draw logo image
-    const brandY = h - 70;
+    // Branding — draw logo image first, then values
     const logoImg = new Image();
     logoImg.crossOrigin = 'anonymous';
     logoImg.onload = () => {
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
-      const logoH = 30;
+
+      // Logo at top
+      const logoH = 32;
       const logoW = logoImg.naturalWidth * (logoH / logoImg.naturalHeight);
-      ctx.drawImage(logoImg, (w - logoW) / 2, brandY, logoW, logoH);
+      ctx.drawImage(logoImg, (w - logoW) / 2, 24, logoW, logoH);
+
+      // Header
+      ctx.fillStyle = '#507271';
+      ctx.font = 'bold 26px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`My Top ${displayValues.length} Values`, w / 2, 90);
+
+      // Mustard divider
+      ctx.strokeStyle = '#B6873F';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(w / 3, 104);
+      ctx.lineTo((2 * w) / 3, 104);
+      ctx.stroke();
+
+      // Value cards
+      const startY = 125;
+      displayValues.forEach((v, i) => {
+        const y = startY + i * 48;
+        // Card background
+        ctx.fillStyle = '#D6E1DD';
+        ctx.beginPath();
+        ctx.roundRect(80, y, w - 160, 40, 6);
+        ctx.fill();
+
+        // Number
+        ctx.fillStyle = '#507271';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`${i + 1}.`, 95, y + 26);
+
+        // Title
+        ctx.fillStyle = '#0E0D0C';
+        ctx.font = 'bold 15px sans-serif';
+        ctx.fillText(v.title, 125, y + 26);
+
+        // Description
+        ctx.fillStyle = '#507271';
+        ctx.font = 'italic 12px sans-serif';
+        ctx.fillText(v.description, 125 + ctx.measureText(v.title).width + 12, y + 26);
+      });
 
       // Footer
-      const footerY = h - 30;
-      ctx.fillStyle = '#0E0D0C';
+      ctx.fillStyle = '#B6873F';
       ctx.font = '11px sans-serif';
       ctx.textAlign = 'center';
-      ctx.globalAlpha = 0.4;
-      ctx.fillText('alisonrose.nl  |  Personal Values Card Sort', w / 2, footerY);
-      ctx.globalAlpha = 1;
+      ctx.fillText('alisonrose.nl', w / 2, h - 20);
 
       // Download
       const link = document.createElement('a');
-      link.download = 'my-values.png';
+      link.download = 'MyValuesSortResults.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
     };
@@ -611,7 +625,7 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
 
       {top5Values.length > 0 && (
         <div className="top5-results">
-          <h2>Your Top {TOP5_LIMIT}</h2>
+          <h2>Your Top {top5Values.length}</h2>
           <div className="top5-results-list">
             {top5Values.map((v, i) => (
               <div key={v.id} className="top5-result-item">
@@ -782,6 +796,7 @@ function subscribeToKit(email) {
 function App() {
   const [screen, setScreen] = useState('intro');
   const [email, setEmail] = useState('');
+  const [emailConsent, setEmailConsent] = useState(false);
   const [cards, setCards] = useState([]);
   const [piles, setPiles] = useState({
     veryImportant: [],
@@ -944,6 +959,8 @@ function App() {
           <IntroScreen
             email={email}
             setEmail={setEmail}
+            emailConsent={emailConsent}
+            setEmailConsent={setEmailConsent}
             onStart={handleStart}
             savedProgress={savedProgress}
             onResume={handleResume}
@@ -976,6 +993,7 @@ function App() {
             onStartOver={handleStartOver}
             friendPiles={friendPiles}
             pastResults={pastResults}
+            setPastResults={setPastResults}
           />
         )}
       </div>

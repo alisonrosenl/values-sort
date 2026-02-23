@@ -23,7 +23,7 @@
 }
 
 .intro-logo {
-  height: 48px;
+  height: 45px;
   width: auto;
   display: block;
   padding: 0.5rem;
@@ -41,10 +41,17 @@
 
 .results-logo {
   display: block;
-  height: 28px;
+  height: 45px;
   width: auto;
   margin: 0 auto 0.25rem;
   padding: 0.35rem;
+}
+
+.sorting-logo {
+  display: block;
+  height: 45px;
+  width: auto;
+  margin: 0 auto 1.25rem;
 }
 
 /* ========== Intro Screen ========== */
@@ -131,6 +138,33 @@
   border-color: #B6873F;
 }
 
+.consent-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #555;
+  line-height: 1.3;
+  cursor: pointer;
+  margin-bottom: 1.5rem;
+}
+
+.consent-checkbox input[type="checkbox"] {
+  flex-shrink: 0;
+  accent-color: #B6873F;
+}
+
+.consent-checkbox a {
+  color: #B6873F;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.consent-checkbox a:hover {
+  color: #9a7235;
+}
+
 .intro-actions {
   display: flex;
   flex-direction: column;
@@ -166,12 +200,14 @@
 }
 
 .btn-secondary {
-  background-color: #D6E1DD;
-  color: #0E0D0C;
+  background: transparent;
+  color: #B6873F;
+  border: 2px solid #B6873F;
 }
 
 .btn-secondary:hover {
-  background-color: #c5d4cf;
+  background-color: #B6873F;
+  color: #FFFDFC;
 }
 
 /* ========== Sorting Screen ========== */
@@ -186,7 +222,7 @@
 .progress-bar-container {
   width: 100%;
   max-width: 600px;
-  margin: 0 auto 0.5rem;
+  margin: 0 auto 0.25rem;
   padding: 0 1rem;
 }
 
@@ -610,6 +646,7 @@
   text-align: center;
   font-size: 2rem;
   margin-bottom: 0.5rem;
+  color: #507271;
 }
 
 .results-subtitle {
@@ -620,7 +657,7 @@
 
 /* Top 5 Results */
 .top5-results {
-  background: #f0f7f4;
+  background: #D6E1DD;
   border-radius: 4px;
   padding: 1.5rem;
   margin-bottom: 2rem;
@@ -898,13 +935,12 @@
 /* ========== Site Footer ========== */
 
 .site-footer {
-  background: #A4BAB0;
+  background: transparent;
   color: #0E0D0C;
   padding: 1.25rem 1.5rem;
   text-align: center;
   font-size: 0.65rem;
   line-height: 1.6;
-  border-top: 1px solid #93a99f;
 }
 
 .footer-brand {
