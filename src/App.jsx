@@ -117,9 +117,14 @@ function IntroScreen({ email, setEmail, onStart }) {
           placeholder="you@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
       </div>
-      <button className="btn btn-primary" onClick={onStart}>
+      <button
+        className="btn btn-primary"
+        onClick={onStart}
+        disabled={!email || !email.includes('@')}
+      >
         Begin Sorting
       </button>
     </div>
@@ -307,6 +312,9 @@ function ResultsScreen({ piles, email, onStartOver }) {
       <div className="results-actions">
         <button className="btn btn-primary" onClick={handleEmailResults}>
           Email My Results
+        </button>
+        <button className="btn btn-primary" onClick={() => window.print()}>
+          Print / Save PDF
         </button>
         <button className="btn btn-secondary" onClick={onStartOver}>
           Start Over
