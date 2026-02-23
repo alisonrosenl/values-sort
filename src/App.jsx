@@ -70,6 +70,45 @@ function DroppablePile({ id, label, count, className }) {
   );
 }
 
+// --- Narrowing Screen ---
+
+function NarrowingScreen({ cards, targetCount, selected, onToggle, onConfirm, stepLabel }) {
+  return (
+    <div className="narrowing-screen">
+      <h1>{stepLabel}</h1>
+      <p className="narrowing-subtitle">
+        Choose exactly <strong>{targetCount}</strong> values from the {cards.length} below.
+        Tap a card to select or deselect it.
+      </p>
+      <div className="narrowing-counter">
+        {selected.length} of {targetCount} selected
+      </div>
+      <div className="narrowing-grid">
+        {cards.map((card) => {
+          const isSelected = selected.some((s) => s.id === card.id);
+          return (
+            <button
+              key={card.id}
+              className={`narrowing-card ${isSelected ? 'narrowing-card-selected' : ''}`}
+              onClick={() => onToggle(card)}
+            >
+              <div className="narrowing-card-title">{card.title}</div>
+              <div className="narrowing-card-desc">{card.description}</div>
+            </button>
+          );
+        })}
+      </div>
+      <button
+        className="btn btn-primary"
+        disabled={selected.length !== targetCount}
+        onClick={onConfirm}
+      >
+        Continue with Top {targetCount}
+      </button>
+    </div>
+  );
+}
+
 // --- Screens ---
 
 function IntroScreen({ email, setEmail, onStart }) {
@@ -205,16 +244,39 @@ function SortingScreen({ currentCard, totalCards, sortedCount, piles, onSort }) 
   );
 }
 
-function ResultsScreen({ piles, email, onStartOver }) {
+function ResultsScreen({ piles, top10, top5, email, onStartOver }) {
+  const hasNarrowing = top5.length > 0;
+  const top5Ids = useMemo(() => new Set(top5.map((v) => v.id)), [top5]);
+  const top10Ids = useMemo(() => new Set(top10.map((v) => v.id)), [top10]);
+
   const handleEmailResults = useCallback(() => {
-    // Build results text
     const buildList = (items) =>
       items.map((v) => `  - ${v.title}: ${v.description}`).join('\n');
 
-    const body = [
+    const sections = [
       'PERSONAL VALUES CARD SORT RESULTS',
       '==================================\n',
-      `VERY IMPORTANT TO ME (${piles.veryImportant.length}):`,
+    ];
+
+    if (top5.length > 0) {
+      sections.push(
+        `MY TOP 5 VALUES:`,
+        buildList(top5),
+        ''
+      );
+    }
+
+    if (top10.length > 0 && top10.length !== top5.length) {
+      const remaining10 = top10.filter((v) => !top5Ids.has(v.id));
+      sections.push(
+        `ALSO IN MY TOP 10:`,
+        buildList(remaining10),
+        ''
+      );
+    }
+
+    sections.push(
+      `\nVERY IMPORTANT TO ME (${piles.veryImportant.length}):`,
       buildList(piles.veryImportant),
       `\nIMPORTANT TO ME (${piles.important.length}):`,
       buildList(piles.important),
@@ -224,12 +286,13 @@ function ResultsScreen({ piles, email, onStartOver }) {
       'Based on the Personal Values Card Sort by',
       "W.R. Miller, J. C'de Baca, D.B. Matthews, P.L. Wilbourne",
       'University of New Mexico, 2001',
-    ].join('\n');
+    );
 
+    const body = sections.join('\n');
     const subject = 'My Personal Values Card Sort Results';
     const mailtoLink = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(mailtoLink, '_blank');
-  }, [piles, email]);
+  }, [piles, top10, top5, top5Ids, email]);
 
   return (
     <div className="results-screen">
@@ -238,6 +301,38 @@ function ResultsScreen({ piles, email, onStartOver }) {
         Here&rsquo;s how you sorted your personal values
       </p>
 
+      {hasNarrowing && (
+        <div className="top-values-section">
+          <div className="top-values-group top-5-group">
+            <h2>Your Top 5 Values</h2>
+            <div className="top-values-list">
+              {top5.map((v) => (
+                <div key={v.id} className="top-value-card top-5-card">
+                  <div className="top-value-title">{v.title}</div>
+                  <div className="top-value-desc">{v.description}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {top10.length > top5.length && (
+            <div className="top-values-group top-10-group">
+              <h2>Also in Your Top 10</h2>
+              <div className="top-values-list">
+                {top10
+                  .filter((v) => !top5Ids.has(v.id))
+                  .map((v) => (
+                    <div key={v.id} className="top-value-card top-10-card">
+                      <div className="top-value-title">{v.title}</div>
+                      <div className="top-value-desc">{v.description}</div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="results-columns">
         <div className="results-column col-very-important">
           <h2>Very Important to Me</h2>
@@ -245,8 +340,15 @@ function ResultsScreen({ piles, email, onStartOver }) {
             {piles.veryImportant.length} values
           </span>
           {piles.veryImportant.map((v) => (
-            <div key={v.id} className="result-card">
-              <div className="result-title">{v.title}</div>
+            <div
+              key={v.id}
+              className={`result-card ${top5Ids.has(v.id) ? 'result-card-top5' : top10Ids.has(v.id) ? 'result-card-top10' : ''}`}
+            >
+              <div className="result-title">
+                {v.title}
+                {top5Ids.has(v.id) && <span className="top-badge top-badge-5">Top 5</span>}
+                {!top5Ids.has(v.id) && top10Ids.has(v.id) && <span className="top-badge top-badge-10">Top 10</span>}
+              </div>
               <div className="result-desc">{v.description}</div>
             </div>
           ))}
@@ -308,6 +410,8 @@ function App() {
     important: [],
     notImportant: [],
   });
+  const [top10, setTop10] = useState([]);
+  const [top5, setTop5] = useState([]);
 
   const totalCards = values.length;
   const sortedCount = totalCards - cards.length;
@@ -316,6 +420,8 @@ function App() {
   const handleStart = useCallback(() => {
     setCards(shuffle(values));
     setPiles({ veryImportant: [], important: [], notImportant: [] });
+    setTop10([]);
+    setTop5([]);
     setScreen('sorting');
   }, []);
 
@@ -323,22 +429,65 @@ function App() {
     (pileId) => {
       if (!cards.length) return;
       const card = cards[0];
-      setPiles((prev) => ({
-        ...prev,
-        [pileId]: [...prev[pileId], card],
-      }));
-      const remaining = cards.slice(1);
-      setCards(remaining);
-      if (remaining.length === 0) {
-        setScreen('results');
-      }
+      setPiles((prev) => {
+        const nextPiles = { ...prev, [pileId]: [...prev[pileId], card] };
+        const remaining = cards.slice(1);
+        if (remaining.length === 0) {
+          const veryCount = nextPiles.veryImportant.length;
+          if (veryCount > 10) {
+            setScreen('narrowTop10');
+          } else if (veryCount > 5) {
+            setTop10(nextPiles.veryImportant);
+            setScreen('narrowTop5');
+          } else {
+            setTop10(nextPiles.veryImportant);
+            setTop5(nextPiles.veryImportant);
+            setScreen('results');
+          }
+        }
+        return nextPiles;
+      });
+      setCards((prev) => prev.slice(1));
     },
     [cards]
   );
 
+  const handleToggleTop10 = useCallback((card) => {
+    setTop10((prev) => {
+      const exists = prev.some((c) => c.id === card.id);
+      if (exists) return prev.filter((c) => c.id !== card.id);
+      if (prev.length >= 10) return prev;
+      return [...prev, card];
+    });
+  }, []);
+
+  const handleConfirmTop10 = useCallback(() => {
+    if (top10.length > 5) {
+      setScreen('narrowTop5');
+    } else {
+      setTop5(top10);
+      setScreen('results');
+    }
+  }, [top10]);
+
+  const handleToggleTop5 = useCallback((card) => {
+    setTop5((prev) => {
+      const exists = prev.some((c) => c.id === card.id);
+      if (exists) return prev.filter((c) => c.id !== card.id);
+      if (prev.length >= 5) return prev;
+      return [...prev, card];
+    });
+  }, []);
+
+  const handleConfirmTop5 = useCallback(() => {
+    setScreen('results');
+  }, []);
+
   const handleStartOver = useCallback(() => {
     setCards([]);
     setPiles({ veryImportant: [], important: [], notImportant: [] });
+    setTop10([]);
+    setTop5([]);
     setScreen('intro');
   }, []);
 
@@ -360,9 +509,31 @@ function App() {
           onSort={handleSort}
         />
       )}
+      {screen === 'narrowTop10' && (
+        <NarrowingScreen
+          cards={piles.veryImportant}
+          targetCount={10}
+          selected={top10}
+          onToggle={handleToggleTop10}
+          onConfirm={handleConfirmTop10}
+          stepLabel="Narrow to Your Top 10"
+        />
+      )}
+      {screen === 'narrowTop5' && (
+        <NarrowingScreen
+          cards={top10.length > 0 ? top10 : piles.veryImportant}
+          targetCount={5}
+          selected={top5}
+          onToggle={handleToggleTop5}
+          onConfirm={handleConfirmTop5}
+          stepLabel="Narrow to Your Top 5"
+        />
+      )}
       {screen === 'results' && (
         <ResultsScreen
           piles={piles}
+          top10={top10}
+          top5={top5}
           email={email}
           onStartOver={handleStartOver}
         />
