@@ -23,9 +23,10 @@
 }
 
 .intro-logo {
-  height: 60px;
+  height: 48px;
   width: auto;
   display: block;
+  padding: 0.5rem;
 }
 
 .brand-presents {
@@ -40,9 +41,10 @@
 
 .results-logo {
   display: block;
-  height: 36px;
+  height: 28px;
   width: auto;
   margin: 0 auto 0.25rem;
+  padding: 0.35rem;
 }
 
 /* ========== Intro Screen ========== */
@@ -434,13 +436,13 @@
 }
 
 .btn-not-important {
-  background: #e8e8e8;
-  color: #666;
+  background: #4B545D;
+  color: white;
   border: none;
 }
 
 .btn-not-important:hover {
-  background: #ddd;
+  background: #3d454d;
 }
 
 .btn-important {
@@ -454,13 +456,13 @@
 }
 
 .btn-very-important {
-  background: #4a8c6f;
+  background: #507271;
   color: white;
   border: none;
 }
 
 .btn-very-important:hover {
-  background: #3d7a5f;
+  background: #436161;
 }
 
 .key-hint {
@@ -897,8 +899,9 @@
 }
 
 .footer-logo {
-  height: 22px;
+  height: 18px;
   width: auto;
+  padding: 0.15rem;
 }
 
 .footer-disclaimer {
