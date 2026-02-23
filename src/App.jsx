@@ -15,6 +15,7 @@ import './App.css';
 // --- Constants ---
 
 const LOGO_URL = 'https://images.squarespace-cdn.com/content/68138d98b173884d75ec5456/3eb007bc-2889-4fea-9e9c-6f6f1bcb2b29/NameOnlyScript.png?content-type=image%2Fpng';
+const MONOGRAM_URL = 'https://images.squarespace-cdn.com/content/68138d98b173884d75ec5456/24c580c0-22ac-4dc2-a41c-5d97c4f50b42/Monogram.png?content-type=image%2Fpng';
 
 const STORAGE_KEY = 'values-sort-progress';
 const HISTORY_KEY = 'values-sort-history';
@@ -173,7 +174,7 @@ function SiteFooter() {
     <footer className="site-footer">
       <div className="footer-brand">
         <a href="https://alisonrose.nl" target="_blank" rel="noopener noreferrer" className="footer-logo-link">
-          <img src={LOGO_URL} alt="Alison Rose" className="footer-logo" />
+          <img src={MONOGRAM_URL} alt="Alison Rose" className="footer-logo" />
         </a>
       </div>
       <div className="footer-disclaimer">
