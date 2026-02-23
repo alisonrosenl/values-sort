@@ -54,18 +54,30 @@ function DraggableCard({ card }) {
 
 // --- Droppable Pile ---
 
-function DroppablePile({ id, label, count, className }) {
+function DroppablePile({ id, label, cards, className }) {
   const { setNodeRef, isOver } = useDroppable({ id });
+  const count = cards.length;
+  const topCard = cards[cards.length - 1];
 
   return (
     <div
       ref={setNodeRef}
-      className={`pile ${className} ${isOver ? 'pile-over' : ''}`}
+      className={`pile ${className} ${isOver ? 'pile-over' : ''} ${count > 0 ? 'pile-has-cards' : ''}`}
     >
       <h3>{label}</h3>
       <span className="pile-count">
         {count} {count === 1 ? 'card' : 'cards'}
       </span>
+      {count > 0 && (
+        <div className="pile-stack">
+          {count > 2 && <div className="pile-stack-card pile-stack-card-3" />}
+          {count > 1 && <div className="pile-stack-card pile-stack-card-2" />}
+          <div className="pile-stack-card pile-stack-card-1">
+            <div className="pile-stack-title">{topCard.title}</div>
+            <div className="pile-stack-desc">{topCard.description}</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -158,19 +170,19 @@ function SortingScreen({ currentCard, totalCards, sortedCount, piles, onSort }) 
             <DroppablePile
               id="notImportant"
               label="Not Important to Me"
-              count={piles.notImportant.length}
+              cards={piles.notImportant}
               className="pile-not-important"
             />
             <DroppablePile
               id="important"
               label="Important to Me"
-              count={piles.important.length}
+              cards={piles.important}
               className="pile-important"
             />
             <DroppablePile
               id="veryImportant"
               label="Very Important to Me"
-              count={piles.veryImportant.length}
+              cards={piles.veryImportant}
               className="pile-very-important"
             />
           </div>
