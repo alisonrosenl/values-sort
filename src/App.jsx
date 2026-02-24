@@ -85,6 +85,16 @@ function loadHistory() {
   }
 }
 
+function toBase64Url(str) {
+  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function fromBase64Url(str) {
+  let b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+  while (b64.length % 4) b64 += '=';
+  return atob(b64);
+}
+
 function encodeResults(piles, top5Ids) {
   const compact = {
     v: piles.veryImportant.map((v) => v.id),
@@ -92,19 +102,19 @@ function encodeResults(piles, top5Ids) {
     n: piles.notImportant.map((v) => v.id),
   };
   if (top5Ids && top5Ids.length > 0) compact.t = top5Ids;
-  return btoa(JSON.stringify(compact));
+  return toBase64Url(JSON.stringify(compact));
 }
 
 function buildResultsUrl(piles, top5Ids, firstName) {
   const encoded = encodeResults(piles, top5Ids);
-  const params = new URLSearchParams({ results: encoded });
-  if (firstName) params.set('name', firstName);
-  return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+  let url = `${window.location.origin}${window.location.pathname}?results=${encoded}`;
+  if (firstName) url += `&name=${encodeURIComponent(firstName)}`;
+  return url;
 }
 
 function decodeResults(encoded) {
   try {
-    const compact = JSON.parse(atob(encoded));
+    const compact = JSON.parse(fromBase64Url(encoded));
     const findValue = (id) => values.find((v) => v.id === id);
     return {
       veryImportant: (compact.v || []).map(findValue).filter(Boolean),
