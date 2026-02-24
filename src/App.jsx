@@ -1029,16 +1029,21 @@ const KIT_FORM_ID = '6d4949227';
 const KIT_API_KEY = 'kit_78fe85509592cf5f7d88825770dc561e';
 
 function subscribeToKit(email, firstName, resultsUrl) {
+  const payload = {
+    api_key: KIT_API_KEY,
+    email,
+    first_name: firstName,
+    fields: { results_url: resultsUrl },
+  };
+  console.log('Kit subscribe payload:', payload);
   fetch(`https://api.convertkit.com/v3/forms/${KIT_FORM_ID}/subscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      api_key: KIT_API_KEY,
-      email,
-      first_name: firstName,
-      fields: { results_url: resultsUrl },
-    }),
-  }).catch(() => {});
+    body: JSON.stringify(payload),
+  })
+    .then((r) => r.json())
+    .then((data) => console.log('Kit response:', data))
+    .catch((err) => console.error('Kit error:', err));
 }
 
 // --- Main App ---
