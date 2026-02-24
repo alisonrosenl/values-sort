@@ -1033,7 +1033,7 @@ function subscribeToKit(email, firstName, resultsUrl) {
     fields: { results_url: resultsUrl },
   };
   console.log('Kit subscribe payload:', payload);
-  fetch(`https://api.convertkit.com/v3/forms/${KIT_FORM_ID}/subscribe`, {
+  fetch(`https://api.kit.com/v3/forms/${KIT_FORM_ID}/subscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
