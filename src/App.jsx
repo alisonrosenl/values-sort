@@ -1021,7 +1021,7 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
 const KIT_FORM_ID = '9123731';
 const KIT_API_KEY = 'kno5wM1wNGSxWAyWP9Ff6A';
 
-function subscribeToKit(email, firstName) {
+function subscribeToKit(email, firstName, resultsUrl) {
   fetch(`https://api.kit.com/v3/forms/${KIT_FORM_ID}/subscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1029,6 +1029,7 @@ function subscribeToKit(email, firstName) {
       api_key: KIT_API_KEY,
       email,
       first_name: firstName,
+      fields: { results_url: resultsUrl },
     }),
   }).catch(() => {});
 }
@@ -1111,9 +1112,10 @@ function App() {
   useEffect(() => {
     if (screen === 'results' && email && emailConsent && !kitSentRef.current) {
       kitSentRef.current = true;
-      subscribeToKit(email, firstName);
+      const resultsUrl = buildResultsUrl(piles, top5Ids, firstName);
+      subscribeToKit(email, firstName, resultsUrl);
     }
-  }, [screen, email, emailConsent, firstName]);
+  }, [screen, email, emailConsent, firstName, piles, top5Ids]);
 
   const handleStart = useCallback(() => {
     setCards(shuffle(values));
