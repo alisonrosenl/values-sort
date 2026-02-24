@@ -231,17 +231,25 @@ function IntroScreen({ firstName, setFirstName, email, setEmail, emailConsent, s
         </div>
       )}
 
-      <div className="intro-hero">
-        <p>
-          When you know what actually matters to you, every business decision gets easier.
-          What to say yes to, what to walk away from, how to show up, what to build next.
-        </p>
-        <p>
-          Five minutes to get clear on what actually drives you.
-        </p>
-        <p>
-          Go with your gut. There are no right or wrong answers, just yours.
-        </p>
+      <div className="intro-hero-row">
+        <div className="intro-hero">
+          <p>
+            When you know what actually matters to you, every business decision gets easier.
+            What to say yes to, what to walk away from, how to show up, what to build next.
+          </p>
+          <p>
+            Five minutes to get clear on what actually drives you.
+          </p>
+          <p>
+            Go with your gut. There are no right or wrong answers, just yours.
+          </p>
+        </div>
+        <div className="intro-hero-image">
+          <img
+            src="https://images.squarespace-cdn.com/content/68138d98b173884d75ec5456/80fb528d-4485-4ab2-b6d7-fb5316f3725b/TruthAndDesign_Session-67.png?content-type=image%2Fpng"
+            alt=""
+          />
+        </div>
       </div>
 
       <div className="instructions">

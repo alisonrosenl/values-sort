@@ -70,12 +70,33 @@
   color: #0E0D0C;
 }
 
-.intro-hero {
-  max-width: 520px;
+.intro-hero-row {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+  max-width: 800px;
   margin-bottom: 2rem;
+}
+
+.intro-hero {
+  flex: 1;
+  text-align: left;
   font-size: 1.05rem;
   line-height: 1.8;
   color: #0E0D0C;
+}
+
+.intro-hero-image {
+  flex: 0 0 280px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.intro-hero-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
 }
 
 .intro-hero p {
@@ -1125,6 +1146,20 @@
 /* ========== Responsive ========== */
 
 @media (max-width: 768px) {
+  .intro-hero-row {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .intro-hero {
+    text-align: center;
+  }
+
+  .intro-hero-image {
+    flex: 0 0 auto;
+    max-width: 280px;
+  }
+
   .intro h1 {
     font-size: 1.8rem;
   }
