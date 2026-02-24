@@ -1023,7 +1023,7 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
 // --- Kit (email marketing) ---
 
 const KIT_FORM_ID = '6d4949227';
-const KIT_API_KEY = 'kit_78fe85509592cf5f7d88825770dc561e';
+const KIT_API_KEY = 'kit_88bcb0848da8bc1844224ecf4f34cdbb';
 
 function subscribeToKit(email, firstName, resultsUrl) {
   const payload = {
