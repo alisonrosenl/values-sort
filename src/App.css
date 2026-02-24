@@ -90,13 +90,15 @@
   flex: 0 0 340px;
   border-radius: 6px;
   overflow: hidden;
+  aspect-ratio: 4 / 5;
 }
 
 .intro-hero-image img {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
-  border-radius: 6px;
+  object-fit: cover;
+  object-position: center top;
 }
 
 .intro-hero p {
