@@ -1023,21 +1023,19 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
 // --- Kit (email marketing) ---
 
 const KIT_FORM_ID = '6d4949227';
-const KIT_API_KEY = 'kit_88bcb0848da8bc1844224ecf4f34cdbb';
+const KIT_API_KEY = 'kno5wM1wNGSxWAyWP9Ff6A';
 
 function subscribeToKit(email, firstName, resultsUrl) {
   const payload = {
-    email_address: email,
+    api_key: KIT_API_KEY,
+    email,
     first_name: firstName,
     fields: { results_url: resultsUrl },
   };
   console.log('Kit subscribe payload:', payload);
-  fetch(`https://api.kit.com/v4/forms/${KIT_FORM_ID}/subscribers`, {
+  fetch(`https://api.convertkit.com/v3/forms/${KIT_FORM_ID}/subscribe`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${KIT_API_KEY}`,
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
     .then((r) => r.json())
