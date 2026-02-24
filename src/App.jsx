@@ -1026,21 +1026,16 @@ const KIT_FORM_ID = '9123731';
 const KIT_API_KEY = 'kno5wM1wNGSxWAyWP9Ff6A';
 
 function subscribeToKit(email, firstName, resultsUrl) {
-  const payload = {
-    api_key: KIT_API_KEY,
-    email,
-    first_name: firstName,
-    fields: { results_url: resultsUrl },
-  };
-  console.log('Kit subscribe payload:', payload);
   fetch(`https://api.kit.com/v3/forms/${KIT_FORM_ID}/subscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
-    .then((r) => r.json())
-    .then((data) => console.log('Kit response:', data))
-    .catch((err) => console.error('Kit error:', err));
+    body: JSON.stringify({
+      api_key: KIT_API_KEY,
+      email,
+      first_name: firstName,
+      fields: { results_url: resultsUrl },
+    }),
+  }).catch(() => {});
 }
 
 // --- Main App ---
