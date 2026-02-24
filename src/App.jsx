@@ -237,7 +237,7 @@ function IntroScreen({ firstName, setFirstName, email, setEmail, emailConsent, s
           What to say yes to, what to walk away from, how to show up, what to build next.
         </p>
         <p>
-          This isn&rsquo;t a personality quiz. It&rsquo;s a clarity tool. And it takes about five minutes.
+          Five minutes to get clear on what actually drives you.
         </p>
         <p>
           Go with your gut. There are no right or wrong answers, just yours.
