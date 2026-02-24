@@ -515,34 +515,17 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
     return topTitles.includes(a) && topTitles.includes(b);
   });
 
-  const handleEmailResults = useCallback(() => {
-    const buildList = (items) =>
-      items.map((v) => `  - ${v.title}: ${v.description}`).join('\n');
+  const [linkCopied, setLinkCopied] = useState(false);
 
-    const top5Section = top5Values.length > 0
-      ? [`\nMY TOP ${top5Values.length} VALUES:`, buildList(top5Values), '']
-      : [];
-
-    const body = [
-      'PERSONAL VALUES CARD SORT RESULTS',
-      '==================================\n',
-      ...top5Section,
-      `VERY IMPORTANT TO ME (${piles.veryImportant.length}):`,
-      buildList(piles.veryImportant),
-      `\nIMPORTANT TO ME (${piles.important.length}):`,
-      buildList(piles.important),
-      `\nNOT IMPORTANT TO ME (${piles.notImportant.length}):`,
-      buildList(piles.notImportant),
-      '\n---',
-      'Based on the Personal Values Card Sort by',
-      "W.R. Miller, J. C'de Baca, D.B. Matthews, P.L. Wilbourne",
-      'University of New Mexico, 2001',
-    ].join('\n');
-
-    const subject = 'My Personal Values Card Sort Results';
-    const mailtoLink = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.open(mailtoLink, '_blank');
-  }, [piles, email, top5Values]);
+  const handleCopyResultsLink = useCallback(() => {
+    const url = buildResultsUrl(piles, top5Ids, firstName);
+    navigator.clipboard.writeText(url).then(() => {
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 3000);
+    }).catch(() => {
+      prompt('Copy this link to save your results:', url);
+    });
+  }, [piles, top5Ids, firstName]);
 
   const handleShare = useCallback(() => {
     const encoded = encodeResults(piles, top5Ids);
@@ -1012,6 +995,9 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
       <canvas ref={canvasRef} style={{ display: 'none' }} />
 
       <div className="results-actions">
+        <button className="btn btn-primary" onClick={handleCopyResultsLink}>
+          {linkCopied ? 'Copied!' : 'Save My Results Link'}
+        </button>
         <button className="btn btn-primary" onClick={() => window.print()}>
           Print / Save PDF
         </button>
@@ -1035,7 +1021,7 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
 const KIT_FORM_ID = '9123731';
 const KIT_API_KEY = 'kno5wM1wNGSxWAyWP9Ff6A';
 
-function subscribeToKit(email, firstName, resultsUrl) {
+function subscribeToKit(email, firstName) {
   fetch(`https://api.kit.com/v3/forms/${KIT_FORM_ID}/subscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1043,7 +1029,6 @@ function subscribeToKit(email, firstName, resultsUrl) {
       api_key: KIT_API_KEY,
       email,
       first_name: firstName,
-      fields: { results_url: resultsUrl },
     }),
   }).catch(() => {});
 }
@@ -1126,10 +1111,9 @@ function App() {
   useEffect(() => {
     if (screen === 'results' && email && emailConsent && !kitSentRef.current) {
       kitSentRef.current = true;
-      const resultsUrl = buildResultsUrl(piles, top5Ids, firstName);
-      subscribeToKit(email, firstName, resultsUrl);
+      subscribeToKit(email, firstName);
     }
-  }, [screen, email, emailConsent, piles, top5Ids, firstName]);
+  }, [screen, email, emailConsent, firstName]);
 
   const handleStart = useCallback(() => {
     setCards(shuffle(values));
