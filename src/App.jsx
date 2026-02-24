@@ -14,7 +14,7 @@ import './App.css';
 
 // --- Constants ---
 
-const LOGO_URL = 'https://images.squarespace-cdn.com/content/68138d98b173884d75ec5456/3eb007bc-2889-4fea-9e9c-6f6f1bcb2b29/NameOnlyScript.png?content-type=image%2Fpng';
+const LOGO_URL = 'https://images.squarespace-cdn.com/content/68138d98b173884d75ec5456/fd8f447b-6561-4611-845f-a462996635ab/NamePrintSmall.png?content-type=image%2Fpng';
 const MONOGRAM_URL = 'https://images.squarespace-cdn.com/content/68138d98b173884d75ec5456/24c580c0-22ac-4dc2-a41c-5d97c4f50b42/Monogram.png?content-type=image%2Fpng';
 
 const STORAGE_KEY = 'values-sort-progress';
@@ -85,13 +85,21 @@ function loadHistory() {
   }
 }
 
-function encodeResults(piles) {
+function encodeResults(piles, top5Ids) {
   const compact = {
     v: piles.veryImportant.map((v) => v.id),
     i: piles.important.map((v) => v.id),
     n: piles.notImportant.map((v) => v.id),
   };
+  if (top5Ids && top5Ids.length > 0) compact.t = top5Ids;
   return btoa(JSON.stringify(compact));
+}
+
+function buildResultsUrl(piles, top5Ids, firstName) {
+  const encoded = encodeResults(piles, top5Ids);
+  const params = new URLSearchParams({ results: encoded });
+  if (firstName) params.set('name', firstName);
+  return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
 }
 
 function decodeResults(encoded) {
@@ -102,6 +110,7 @@ function decodeResults(encoded) {
       veryImportant: (compact.v || []).map(findValue).filter(Boolean),
       important: (compact.i || []).map(findValue).filter(Boolean),
       notImportant: (compact.n || []).map(findValue).filter(Boolean),
+      top5Ids: compact.t || [],
     };
   } catch {
     return null;
@@ -197,15 +206,13 @@ function SiteFooter() {
 
 // --- Screens ---
 
-function IntroScreen({ email, setEmail, emailConsent, setEmailConsent, onStart, savedProgress, onResume, friendName }) {
+function IntroScreen({ firstName, setFirstName, email, setEmail, emailConsent, setEmailConsent, onStart, savedProgress, onResume, friendName }) {
   return (
     <div className="intro">
       <a href="https://alisonrose.nl" target="_blank" rel="noopener noreferrer" className="intro-brand-link">
         <img src={LOGO_URL} alt="Alison Rose" className="intro-logo" />
       </a>
-      <p className="brand-presents">presents</p>
-      <h1>Personal Values Card Sort</h1>
-      <p className="subtitle">Discover what matters most to you</p>
+      <h1>Your values are your blueprint.</h1>
 
       {friendName && (
         <div className="compare-banner">
@@ -213,6 +220,20 @@ function IntroScreen({ email, setEmail, emailConsent, setEmailConsent, onStart, 
           Complete your sort to see how you match up.
         </div>
       )}
+
+      <div className="intro-hero">
+        <p>
+          When you know what actually matters to you, every business decision gets easier.
+          What to say yes to, what to walk away from, how to show up, what to build next.
+        </p>
+        <p>
+          This isn&rsquo;t a personality quiz. It&rsquo;s a clarity tool. And it takes about five minutes.
+        </p>
+        <p>
+          Go with your gut. There are no right or wrong answers, just yours.
+        </p>
+      </div>
+
       <div className="instructions">
         <p>
           You will be shown <strong>49 value cards</strong> one at a time.
@@ -225,11 +246,17 @@ function IntroScreen({ email, setEmail, emailConsent, setEmailConsent, onStart, 
         </p>
         <p style={{ marginTop: '0.75rem' }}>
           Drag each card to a pile, use the buttons, or press <strong>1</strong>, <strong>2</strong>, <strong>3</strong> on your keyboard.
-          Go with your gut &mdash; there are no right or wrong answers.
         </p>
       </div>
-      <div className="email-input-group">
-        <label htmlFor="email">Your email (to receive your results)</label>
+      <div className="intro-input-group">
+        <input
+          id="firstName"
+          type="text"
+          placeholder="Your first name"
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
+          required
+        />
         <input
           id="email"
           type="email"
@@ -256,7 +283,7 @@ function IntroScreen({ email, setEmail, emailConsent, setEmailConsent, onStart, 
         <button
           className="btn btn-primary"
           onClick={onStart}
-          disabled={!email || !email.includes('@')}
+          disabled={!firstName.trim() || !email || !email.includes('@')}
         >
           Begin Sorting
         </button>
@@ -464,8 +491,9 @@ function Top5Screen({ veryImportant, onConfirm }) {
   );
 }
 
-function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastResults, setPastResults }) {
+function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPiles, friendName, pastResults, setPastResults }) {
   const canvasRef = useRef(null);
+  const compareCanvasRef = useRef(null);
 
   const top5Values = top5Ids.length > 0
     ? piles.veryImportant.filter((v) => top5Ids.includes(v.id))
@@ -507,8 +535,8 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
   }, [piles, email, top5Values]);
 
   const handleShare = useCallback(() => {
-    const encoded = encodeResults(piles);
-    const name = email.split('@')[0];
+    const encoded = encodeResults(piles, top5Ids);
+    const name = firstName || email.split('@')[0];
     const url = `${window.location.origin}${window.location.pathname}?compare=${encoded}&from=${encodeURIComponent(name)}`;
 
     if (navigator.share) {
@@ -524,88 +552,123 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
         prompt('Copy this link to share:', url);
       });
     }
-  }, [piles, email]);
+  }, [piles, top5Ids, firstName, email]);
 
   const handleDownloadImage = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const scale = 2;
-    const w = 800;
-    const h = 600;
+    const w = 1080;
+
+    // Top 5 or Very Important
+    const displayValues = top5Values.length > 0 ? top5Values : piles.veryImportant.slice(0, 10);
+
+    // Layout constants
+    const pad = 60;
+    const cardH = 80;
+    const cardGap = 16;
+    const headerY = 100;
+    const startY = 160;
+    const footerH = 80;
+    const contentH = startY + displayValues.length * (cardH + cardGap) + footerH;
+    const h = Math.max(w, contentH); // at least square
+
     canvas.width = w * scale;
     canvas.height = h * scale;
     ctx.scale(scale, scale);
 
-    // Background
+    // Background — warm off-white
     ctx.fillStyle = '#FFFDFC';
     ctx.fillRect(0, 0, w, h);
 
     // Top accent bar
     ctx.fillStyle = '#D6E1DD';
-    ctx.fillRect(0, 0, w, 6);
+    ctx.fillRect(0, 0, w, 8);
 
-    // Top 5 or Very Important
-    const displayValues = top5Values.length > 0 ? top5Values : piles.veryImportant.slice(0, 10);
+    // Left accent stripe
+    ctx.fillStyle = '#B6873F';
+    ctx.fillRect(0, 0, 6, h);
 
     // Fetch logo as blob to avoid CORS tainting the canvas
     const drawImage = (logoImg) => {
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
 
-      // Logo at top
-      if (logoImg) {
-        const logoH = 32;
-        const logoW = logoImg.naturalWidth * (logoH / logoImg.naturalHeight);
-        ctx.drawImage(logoImg, (w - logoW) / 2, 24, logoW, logoH);
-      }
-
       // Header
       ctx.fillStyle = '#507271';
-      ctx.font = 'bold 26px sans-serif';
+      ctx.font = '32px "Scope One", serif';
       ctx.textAlign = 'center';
-      ctx.fillText(`My Top ${displayValues.length} Values`, w / 2, 90);
+      const imageTitle = firstName
+        ? `${firstName}\u2019s Top ${displayValues.length} Values`
+        : `My Top ${displayValues.length} Values`;
+      ctx.fillText(imageTitle, w / 2, headerY);
 
       // Mustard divider
       ctx.strokeStyle = '#B6873F';
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(w / 3, 104);
-      ctx.lineTo((2 * w) / 3, 104);
+      ctx.moveTo(w * 0.3, headerY + 20);
+      ctx.lineTo(w * 0.7, headerY + 20);
       ctx.stroke();
 
-      // Value cards
-      const startY = 125;
+      // Value cards — centered in available space
+      const cardX = pad;
+      const cardW = w - pad * 2;
+      const cardsBlockH = displayValues.length * (cardH + cardGap) - cardGap;
+      const cardsStartY = startY + ((h - startY - footerH - cardsBlockH) / 2);
+      const actualStartY = Math.max(startY, cardsStartY);
+
       displayValues.forEach((v, i) => {
-        const y = startY + i * 48;
-        // Card background
+        const y = actualStartY + i * (cardH + cardGap);
+
+        // Card background — sage green
+        ctx.shadowColor = 'rgba(14, 13, 12, 0.06)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 3;
         ctx.fillStyle = '#D6E1DD';
         ctx.beginPath();
-        ctx.roundRect(80, y, w - 160, 40, 6);
+        ctx.roundRect(cardX, y, cardW, cardH, 8);
+        ctx.fill();
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+
+        // White inset for text area
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.roundRect(cardX + 52, y + 6, cardW - 62, cardH - 12, 6);
         ctx.fill();
 
-        // Number
+        // Rank number in the sage strip
         ctx.fillStyle = '#507271';
-        ctx.font = 'bold 16px sans-serif';
-        ctx.textAlign = 'left';
-        ctx.fillText(`${i + 1}.`, 95, y + 26);
+        ctx.font = 'bold 22px "Work Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${i + 1}`, cardX + 26, y + cardH / 2 + 8);
 
         // Title
         ctx.fillStyle = '#0E0D0C';
-        ctx.font = 'bold 15px sans-serif';
-        ctx.fillText(v.title, 125, y + 26);
+        ctx.font = '600 18px "Work Sans", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(v.title, cardX + 68, y + 34);
 
         // Description
         ctx.fillStyle = '#507271';
-        ctx.font = 'italic 12px sans-serif';
-        ctx.fillText(v.description, 125 + ctx.measureText(v.title).width + 12, y + 26);
+        ctx.font = 'italic 14px "Work Sans", sans-serif';
+        ctx.fillText(v.description, cardX + 68, y + 58);
       });
 
-      // Footer
+      // Footer — logo + URL
+      const footerY = h - footerH / 2;
+      if (logoImg) {
+        const logoH = 18;
+        const logoW = logoImg.naturalWidth * (logoH / logoImg.naturalHeight);
+        ctx.drawImage(logoImg, (w - logoW) / 2, footerY - 18, logoW, logoH);
+      }
       ctx.fillStyle = '#B6873F';
-      ctx.font = '11px sans-serif';
+      ctx.font = '12px "Work Sans", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('alisonrose.nl', w / 2, h - 20);
+      ctx.fillText('alisonrose.nl', w / 2, footerY + 12);
 
       // Download / Share
       canvas.toBlob((blob) => {
@@ -635,19 +698,141 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
         logoImg.src = URL.createObjectURL(blob);
       })
       .catch(() => drawImage(null));
-  }, [piles, top5Values]);
+  }, [piles, top5Values, firstName]);
+
+  const handleDownloadComparison = useCallback(() => {
+    if (!friendPiles) return;
+    const canvas = compareCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const scale = 2;
+    const w = 1080;
+
+    const myValues = piles.veryImportant;
+    const theirValues = friendPiles.veryImportant;
+    const maxRows = Math.max(myValues.length, theirValues.length);
+    const rowH = 36;
+    const headerH = 160;
+    const footerH = 60;
+    const h = Math.max(w, headerH + maxRows * rowH + 40 + footerH);
+
+    canvas.width = w * scale;
+    canvas.height = h * scale;
+    ctx.scale(scale, scale);
+
+    // Background
+    ctx.fillStyle = '#FFFDFC';
+    ctx.fillRect(0, 0, w, h);
+
+    // Top accent
+    ctx.fillStyle = '#D6E1DD';
+    ctx.fillRect(0, 0, w, 8);
+
+    // Title
+    ctx.fillStyle = '#507271';
+    ctx.font = '28px "Scope One", serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Values Comparison', w / 2, 60);
+
+    // Divider
+    ctx.strokeStyle = '#B6873F';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(w * 0.3, 76);
+    ctx.lineTo(w * 0.7, 76);
+    ctx.stroke();
+
+    // Column headers
+    const colL = 60;
+    const colR = w / 2 + 30;
+    const colW = w / 2 - 90;
+
+    ctx.fillStyle = '#507271';
+    ctx.font = '600 16px "Work Sans", sans-serif';
+    ctx.textAlign = 'center';
+    const myLabel = firstName || 'You';
+    ctx.fillText(myLabel, colL + colW / 2, 110);
+    ctx.fillText(friendName || 'Friend', colR + colW / 2, 110);
+
+    // Center divider line
+    ctx.strokeStyle = '#D6E1DD';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(w / 2, 120);
+    ctx.lineTo(w / 2, headerH + maxRows * rowH + 20);
+    ctx.stroke();
+
+    // Shared values lookup
+    const myTitles = new Set(myValues.map((v) => v.id));
+    const theirTitles = new Set(theirValues.map((v) => v.id));
+
+    // Draw values
+    const drawCol = (vals, x, width, otherSet, startY) => {
+      vals.forEach((v, i) => {
+        const y = startY + i * rowH;
+        const isShared = otherSet.has(v.id);
+
+        // Row background
+        ctx.fillStyle = isShared ? '#e6f4ec' : '#f5f5f5';
+        ctx.beginPath();
+        ctx.roundRect(x, y, width, rowH - 6, 4);
+        ctx.fill();
+
+        // Text
+        ctx.fillStyle = isShared ? '#507271' : '#0E0D0C';
+        ctx.font = isShared ? '600 14px "Work Sans", sans-serif' : '14px "Work Sans", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(v.title + (isShared ? ' \u2605' : ''), x + 12, y + 22);
+      });
+    };
+
+    const valStartY = headerH;
+    drawCol(myValues, colL, colW, theirTitles, valStartY);
+    drawCol(theirValues, colR, colW, myTitles, valStartY);
+
+    // Shared count
+    const sharedCount = myValues.filter((v) => theirTitles.has(v.id)).length;
+    if (sharedCount > 0) {
+      const summaryY = headerH + maxRows * rowH + 20;
+      ctx.fillStyle = '#B6873F';
+      ctx.font = '600 14px "Work Sans", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${sharedCount} shared value${sharedCount > 1 ? 's' : ''}`, w / 2, summaryY);
+    }
+
+    // Footer
+    ctx.fillStyle = '#B6873F';
+    ctx.font = '12px "Work Sans", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('alisonrose.nl', w / 2, h - 20);
+
+    // Download / Share
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const file = new File([blob], 'ValuesComparison.png', { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file] }).catch(() => {});
+      } else {
+        const link = document.createElement('a');
+        link.download = 'ValuesComparison.png';
+        link.href = URL.createObjectURL(blob);
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }
+    }, 'image/png');
+  }, [piles, friendPiles, firstName, friendName]);
 
   return (
     <div className="results-screen">
       <img src={LOGO_URL} alt="Alison Rose" className="results-logo" />
-      <h1>Your Results</h1>
+      <h1>Here are your five core values.</h1>
       <p className="results-subtitle">
-        Here&rsquo;s how you sorted your personal values
+        Keep these somewhere you&rsquo;ll see them. They&rsquo;re your filter for everything.
       </p>
 
       {top5Values.length > 0 && (
         <div className="top5-results">
-          <h2>Your Top {top5Values.length}</h2>
+          <h2>{firstName ? `${firstName}\u2019s Top ${top5Values.length}` : `Your Top ${top5Values.length}`}</h2>
           <div className="top5-results-list">
             {top5Values.map((v, i) => (
               <div key={v.id} className="top5-result-item">
@@ -661,6 +846,13 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
           </div>
         </div>
       )}
+
+      <div className="results-body">
+        <p>
+          These aren&rsquo;t just words. They&rsquo;re the lens through which you make decisions,
+          attract the right clients, and build something that actually fits your life.
+        </p>
+      </div>
 
       {conflicts.length > 0 && (
         <div className="conflicts-section">
@@ -684,25 +876,56 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
           <h2>How You Compare</h2>
           <div className="comparison-grid">
             <div className="comparison-col">
-              <h3>Your Top Values</h3>
+              <h3>{firstName || 'You'}</h3>
               {piles.veryImportant.map((v) => (
                 <div key={v.id} className="comparison-item own">{v.title}</div>
               ))}
             </div>
             <div className="comparison-col">
-              <h3>Their Top Values</h3>
+              <h3>{friendName || 'Friend'}</h3>
               {friendPiles.veryImportant.map((v) => {
                 const shared = piles.veryImportant.some((own) => own.id === v.id);
                 return (
                   <div key={v.id} className={`comparison-item friend ${shared ? 'shared' : ''}`}>
-                    {v.title} {shared && '★'}
+                    {v.title} {shared && '\u2605'}
                   </div>
                 );
               })}
             </div>
           </div>
+          <canvas ref={compareCanvasRef} style={{ display: 'none' }} />
+          <div className="comparison-actions">
+            <button className="btn btn-primary" onClick={handleDownloadComparison}>
+              Save Comparison
+            </button>
+          </div>
         </div>
       )}
+
+      <div className="sales-section">
+        <img
+          src="https://images.squarespace-cdn.com/content/68138d98b173884d75ec5456/75caa95d-32bb-459d-becb-187d6afdd388/Cursive+Stacked.png?content-type=image%2Fpng"
+          alt="The Rare Company Club"
+          className="sales-logo"
+        />
+        <p className="sales-body">
+          Want to build your business around what you just discovered?
+          The Rare Company Club is where we do that together.
+          Work alongside other self-employed women who are shaping businesses as unique as they are.
+        </p>
+        <div className="sales-actions">
+          <a className="btn btn-primary" href="https://www.alisonrose.nl/the-rare-company-club" target="_blank" rel="noopener noreferrer">
+            Join the Club
+          </a>
+        </div>
+        <p className="sales-nudge">
+          Ready to go deeper? Use your values as the foundation for your astrology business profile.
+          {' '}
+          <a href="#" target="_blank" rel="noopener noreferrer">
+            Try Alison Rose | In Alignment &rarr;
+          </a>
+        </p>
+      </div>
 
       <div className="results-columns">
         <div className="results-column col-very-important">
@@ -805,11 +1028,16 @@ function ResultsScreen({ piles, top5Ids, email, onStartOver, friendPiles, pastRe
 const KIT_FORM_ID = '6d4949227';
 const KIT_API_KEY = 'kit_78fe85509592cf5f7d88825770dc561e';
 
-function subscribeToKit(email) {
+function subscribeToKit(email, firstName, resultsUrl) {
   fetch(`https://api.convertkit.com/v3/forms/${KIT_FORM_ID}/subscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ api_key: KIT_API_KEY, email }),
+    body: JSON.stringify({
+      api_key: KIT_API_KEY,
+      email,
+      first_name: firstName,
+      fields: { results_url: resultsUrl },
+    }),
   }).catch(() => {});
 }
 
@@ -817,6 +1045,7 @@ function subscribeToKit(email) {
 
 function App() {
   const [screen, setScreen] = useState('intro');
+  const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [emailConsent, setEmailConsent] = useState(false);
   const [cards, setCards] = useState([]);
@@ -843,8 +1072,23 @@ function App() {
 
     setPastResults(loadHistory());
 
-    // Check for friend comparison in URL
     const params = new URLSearchParams(window.location.search);
+
+    // Direct results link (from Kit email)
+    const resultsData = params.get('results');
+    if (resultsData) {
+      const decoded = decodeResults(resultsData);
+      if (decoded) {
+        setPiles(decoded);
+        setTop5Ids(decoded.top5Ids || []);
+        const nameParam = params.get('name');
+        if (nameParam) setFirstName(nameParam);
+        setScreen('results');
+        return;
+      }
+    }
+
+    // Check for friend comparison in URL
     const compareData = params.get('compare');
     const fromName = params.get('from');
     if (compareData) {
@@ -863,16 +1107,24 @@ function App() {
         cards,
         piles,
         history,
+        firstName,
         email,
         sortedCount,
       });
     }
-  }, [screen, cards, piles, history, email, sortedCount]);
+  }, [screen, cards, piles, history, firstName, email, sortedCount]);
+
+  // Subscribe to Kit when results are ready
+  const kitSentRef = useRef(false);
+  useEffect(() => {
+    if (screen === 'results' && email && emailConsent && !kitSentRef.current) {
+      kitSentRef.current = true;
+      const resultsUrl = buildResultsUrl(piles, top5Ids, firstName);
+      subscribeToKit(email, firstName, resultsUrl);
+    }
+  }, [screen, email, emailConsent, piles, top5Ids, firstName]);
 
   const handleStart = useCallback(() => {
-    if (email && emailConsent) {
-      subscribeToKit(email);
-    }
     setCards(shuffle(values));
     setPiles({ veryImportant: [], important: [], notImportant: [] });
     setHistory([]);
@@ -880,13 +1132,14 @@ function App() {
     setSavedProgress(null);
     clearProgress();
     setScreen('sorting');
-  }, [email, emailConsent]);
+  }, []);
 
   const handleResume = useCallback(() => {
     if (!savedProgress) return;
     setCards(savedProgress.cards);
     setPiles(savedProgress.piles);
     setHistory(savedProgress.history);
+    if (savedProgress.firstName) setFirstName(savedProgress.firstName);
     if (savedProgress.email) setEmail(savedProgress.email);
     setSavedProgress(null);
     setScreen('sorting');
@@ -970,6 +1223,7 @@ function App() {
     setPiles({ veryImportant: [], important: [], notImportant: [] });
     setHistory([]);
     setTop5Ids([]);
+    kitSentRef.current = false;
     clearProgress();
     setScreen('intro');
   }, []);
@@ -979,6 +1233,8 @@ function App() {
       <div className="app-content">
         {screen === 'intro' && (
           <IntroScreen
+            firstName={firstName}
+            setFirstName={setFirstName}
             email={email}
             setEmail={setEmail}
             emailConsent={emailConsent}
@@ -1011,9 +1267,11 @@ function App() {
           <ResultsScreen
             piles={piles}
             top5Ids={top5Ids}
+            firstName={firstName}
             email={email}
             onStartOver={handleStartOver}
             friendPiles={friendPiles}
+            friendName={friendName}
             pastResults={pastResults}
             setPastResults={setPastResults}
           />

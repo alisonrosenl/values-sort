@@ -23,25 +23,15 @@
 }
 
 .intro-logo {
-  height: 45px;
+  height: 30px;
   width: auto;
   display: block;
   padding: 0.5rem;
 }
 
-.brand-presents {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: #B6873F;
-  margin-top: 0.5rem;
-  margin-bottom: 1.5rem;
-  font-weight: 500;
-}
-
 .results-logo {
   display: block;
-  height: 45px;
+  height: 30px;
   width: auto;
   margin: 0 auto 0.25rem;
   padding: 0.35rem;
@@ -49,7 +39,7 @@
 
 .sorting-logo {
   display: block;
-  height: 45px;
+  height: 30px;
   width: auto;
   margin: 0 auto 0.5rem;
 }
@@ -74,28 +64,41 @@
 }
 
 .intro h1 {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
+  font-size: 2.25rem;
+  margin-bottom: 1.5rem;
   color: #0E0D0C;
 }
 
-.intro .subtitle {
-  font-size: 1rem;
-  color: #B6873F;
+.intro-hero {
+  max-width: 520px;
   margin-bottom: 2rem;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #0E0D0C;
+}
+
+.intro-hero p {
+  margin-bottom: 1rem;
+}
+
+.intro-hero p:last-child {
+  margin-bottom: 0;
   font-weight: 500;
+  color: #507271;
 }
 
 .intro .instructions {
   max-width: 500px;
   margin-bottom: 2.5rem;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   line-height: 1.7;
   color: #0E0D0C;
+  opacity: 0.75;
 }
 
 .intro .instructions strong {
   color: #B6873F;
+  opacity: 1;
 }
 
 .compare-banner {
@@ -113,7 +116,7 @@
   color: #507271;
 }
 
-.email-input-group {
+.intro-input-group {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -123,12 +126,7 @@
   max-width: 360px;
 }
 
-.email-input-group label {
-  font-weight: 500;
-  font-size: 0.95rem;
-}
-
-.email-input-group input {
+.intro-input-group input {
   width: 100%;
   padding: 0.75rem 1rem;
   border: 2px solid #D6E1DD;
@@ -140,7 +138,7 @@
   transition: border-color 0.2s;
 }
 
-.email-input-group input:focus {
+.intro-input-group input:focus {
   outline: none;
   border-color: #B6873F;
 }
@@ -662,6 +660,78 @@
   margin-bottom: 2rem;
 }
 
+/* Results Body */
+.results-body {
+  max-width: 560px;
+  margin: 0 auto 2rem;
+  text-align: center;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #0E0D0C;
+}
+
+/* Sales Section */
+.sales-section {
+  background: #fffbf5;
+  border: 1px solid #e8d8c0;
+  border-radius: 4px;
+  padding: 2rem 1.5rem;
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+
+.sales-logo {
+  display: block;
+  height: 60px;
+  width: auto;
+  margin: 0 auto 1.25rem;
+}
+
+.sales-body {
+  max-width: 520px;
+  margin: 0 auto 1.5rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #0E0D0C;
+}
+
+.sales-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.sales-actions .btn {
+  text-decoration: none;
+}
+
+.sales-actions .btn-primary {
+  background-color: #507271;
+}
+
+.sales-actions .btn-primary:hover {
+  background-color: #436161;
+  box-shadow: 0 4px 12px rgba(80, 114, 113, 0.3);
+}
+
+.sales-nudge {
+  font-size: 0.85rem;
+  color: #555;
+  line-height: 1.5;
+}
+
+.sales-nudge a {
+  color: #B6873F;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.sales-nudge a:hover {
+  text-decoration: underline;
+}
+
 /* Top 5 Results */
 .top5-results {
   background: #D6E1DD;
@@ -811,6 +881,21 @@
   font-weight: 600;
 }
 
+.comparison-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+
+.comparison-actions .btn-primary {
+  background-color: #507271;
+}
+
+.comparison-actions .btn-primary:hover {
+  background-color: #436161;
+  box-shadow: 0 4px 12px rgba(80, 114, 113, 0.3);
+}
+
 /* Results Columns */
 .results-columns {
   display: grid;
@@ -931,6 +1016,24 @@
 }
 
 /* Results Actions */
+.results-actions .btn-primary {
+  background-color: #507271;
+}
+
+.results-actions .btn-primary:hover:not(:disabled) {
+  background-color: #436161;
+  box-shadow: 0 4px 12px rgba(80, 114, 113, 0.3);
+}
+
+.results-actions .btn-secondary {
+  color: #507271;
+  border-color: #507271;
+}
+
+.results-actions .btn-secondary:hover {
+  background-color: #507271;
+}
+
 .results-actions {
   display: flex;
   gap: 1rem;
@@ -1076,6 +1179,11 @@
   .comparison-grid {
     grid-template-columns: 1fr;
   }
+
+  .sales-actions {
+    flex-direction: column;
+    align-items: center;
+  }
 }
 
 /* ========== Print Styles ========== */
@@ -1092,6 +1200,10 @@
   }
 
   .history-section {
+    display: none !important;
+  }
+
+  .sales-section {
     display: none !important;
   }
 
