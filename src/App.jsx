@@ -1002,9 +1002,6 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
       <canvas ref={canvasRef} style={{ display: 'none' }} />
 
       <div className="results-actions">
-        <button className="btn btn-primary" onClick={handleEmailResults}>
-          Email My Results
-        </button>
         <button className="btn btn-primary" onClick={() => window.print()}>
           Print / Save PDF
         </button>
