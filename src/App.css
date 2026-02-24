@@ -87,8 +87,8 @@
 }
 
 .intro-hero-image {
-  flex: 0 0 280px;
-  border-radius: 12px;
+  flex: 0 0 340px;
+  border-radius: 6px;
   overflow: hidden;
 }
 
@@ -96,7 +96,7 @@
   width: 100%;
   height: auto;
   display: block;
-  border-radius: 12px;
+  border-radius: 6px;
 }
 
 .intro-hero p {
