@@ -1027,15 +1027,17 @@ const KIT_API_KEY = 'kit_88bcb0848da8bc1844224ecf4f34cdbb';
 
 function subscribeToKit(email, firstName, resultsUrl) {
   const payload = {
-    api_key: KIT_API_KEY,
-    email,
+    email_address: email,
     first_name: firstName,
     fields: { results_url: resultsUrl },
   };
   console.log('Kit subscribe payload:', payload);
-  fetch(`https://api.convertkit.com/v3/forms/${KIT_FORM_ID}/subscribe`, {
+  fetch(`https://api.kit.com/v4/forms/${KIT_FORM_ID}/subscribers`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${KIT_API_KEY}`,
+    },
     body: JSON.stringify(payload),
   })
     .then((r) => r.json())
