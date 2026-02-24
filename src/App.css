@@ -86,6 +86,12 @@
   color: #0E0D0C;
 }
 
+.intro-tagline {
+  font-size: 1.6rem;
+  margin-bottom: 1rem;
+  color: #507271;
+}
+
 .intro-hero-image {
   flex: 0 0 340px;
   border-radius: 6px;

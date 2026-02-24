@@ -222,7 +222,7 @@ function IntroScreen({ firstName, setFirstName, email, setEmail, emailConsent, s
       <a href="https://alisonrose.nl" target="_blank" rel="noopener noreferrer" className="intro-brand-link">
         <img src={LOGO_URL} alt="Alison Rose" className="intro-logo" />
       </a>
-      <h1>Your values are your blueprint.</h1>
+      <h1>Personal Values Card Sort</h1>
 
       {friendName && (
         <div className="compare-banner">
@@ -233,6 +233,7 @@ function IntroScreen({ firstName, setFirstName, email, setEmail, emailConsent, s
 
       <div className="intro-hero-row">
         <div className="intro-hero">
+          <h2 className="intro-tagline">Your values are your blueprint.</h2>
           <p>
             When you know what actually matters to you, every business decision gets easier.
             What to say yes to, what to walk away from, how to show up, what to build next.
