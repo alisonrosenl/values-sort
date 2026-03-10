@@ -451,7 +451,6 @@ function SortingScreen({ currentCard, totalCards, sortedCount, piles, onSort, on
 
   return (
     <div className="sorting-screen">
-      <img src={LOGO_URL} alt="Alison Rose" className="sorting-logo" />
       <h1 className="sorting-title">Personal Values Card Sort</h1>
       <div className="progress-bar-container">
         <div className="progress-label">
@@ -473,7 +472,7 @@ function SortingScreen({ currentCard, totalCards, sortedCount, piles, onSort, on
           </div>
 
           <p className="sort-hint">
-            Drag the card, tap a button, or press 1 / 2 / 3
+            Drag the card, tap a button, or press 1 / 2 / 3 &mdash; press Z or use the undo button to go back
           </p>
 
           <div className="piles-container">
