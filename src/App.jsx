@@ -217,104 +217,178 @@ function SiteFooter() {
 // --- Screens ---
 
 function IntroScreen({ firstName, setFirstName, email, setEmail, emailConsent, setEmailConsent, onStart, savedProgress, onResume, friendName }) {
+  const canStart = firstName.trim() && email && email.includes('@');
+
   return (
-    <div className="intro">
-      <a href="https://alisonrose.nl" target="_blank" rel="noopener noreferrer" className="intro-brand-link">
-        <img src={LOGO_URL} alt="Alison Rose" className="intro-logo" />
-      </a>
-      <h1>Personal Values Card Sort</h1>
+    <div className="landing-page">
 
-      {friendName && (
-        <div className="compare-banner">
-          <strong>{friendName}</strong> invited you to compare values!
-          Complete your sort to see how you match up.
+      {/* Nav */}
+      <nav className="landing-nav">
+        <a href="https://alisonrose.nl" className="landing-nav-logo">Alison Rose</a>
+        <div className="landing-nav-links">
+          <a href="https://values.alisonrose.nl" className="landing-nav-active">Values Sort</a>
+          <a href="https://alignment.alisonrose.nl">In Alignment</a>
+          <a href="https://alisonrose.nl">Website</a>
         </div>
-      )}
+      </nav>
 
-      <div className="intro-hero-row">
-        <div className="intro-hero">
-          <h2 className="intro-tagline">Your values are your blueprint.</h2>
+      {/* Hero */}
+      <section className="landing-hero">
+        <div className="landing-hero-left">
+          {friendName && (
+            <div className="landing-compare-banner">
+              <strong>{friendName}</strong> invited you to compare values!
+              Complete your sort to see how you match up.
+            </div>
+          )}
+          <span className="landing-eyebrow">Self-Discovery Tool</span>
+          <h1 className="landing-hero-title">Your values are already <strong>running the show.</strong></h1>
+          <p className="landing-hero-sub">
+            This card sort names them. Once you know which values are in charge,
+            the decisions that used to feel hard start making a lot more sense.
+          </p>
+          <div className="landing-cta-row">
+            <a href="#start" className="btn btn-primary">Start the sort</a>
+            <span className="landing-cta-note">Free &mdash; takes about 15 minutes</span>
+          </div>
+        </div>
+        <div className="landing-hero-visual">
+          <div className="card-stack">
+            <div className="vcard">
+              <span className="vcard-word">Security</span>
+              <span className="vcard-pip" style={{ background: '#B3C4BC' }}></span>
+            </div>
+            <div className="vcard">
+              <span className="vcard-word">Pleasure</span>
+              <span className="vcard-pip" style={{ background: '#C12731' }}></span>
+            </div>
+            <div className="vcard">
+              <span className="vcard-word">Freedom</span>
+              <span className="vcard-pip" style={{ background: '#B6873F' }}></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* About */}
+      <section className="landing-about">
+        <div className="landing-about-inner">
+          <span className="landing-section-eyebrow">Why values</span>
+          <h2>When something keeps feeling off, it&rsquo;s usually a values conflict you haven&rsquo;t named yet.</h2>
           <p>
-            When you know what actually matters to you, every business decision gets easier.
-            What to say yes to, what to walk away from, how to show up, what to build next.
+            The opportunity that looked good on paper but felt wrong. The direction you keep
+            circling back to. The work that drains you even when it&rsquo;s going well.
+            That tension has a source.
           </p>
           <p>
-            Five minutes to get clear on what actually drives you.
-          </p>
-          <p>
-            Go with your gut. There are no right or wrong answers, just yours.
+            This is a classic coaching tool you can use on your own. You&rsquo;ll finish with a short
+            list of your top values and, if I had to guess, at least one that surprises you.
           </p>
         </div>
-        <div className="intro-hero-image">
-          <img
-            src="https://images.squarespace-cdn.com/content/68138d98b173884d75ec5456/80fb528d-4485-4ab2-b6d7-fb5316f3725b/TruthAndDesign_Session-67.png?content-type=image%2Fpng"
-            alt=""
-          />
-        </div>
-      </div>
+      </section>
 
-      <div className="instructions">
-        <p>
-          You will be shown <strong>49 value cards</strong> one at a time.
-          For each card, sort it into one of three piles:
-        </p>
-        <p style={{ marginTop: '0.75rem' }}>
-          <strong>Very Important to Me</strong> &middot;{' '}
-          <strong>Important to Me</strong> &middot;{' '}
-          <strong>Not Important to Me</strong>
-        </p>
-        <p style={{ marginTop: '0.75rem' }}>
-          Drag each card to a pile, use the buttons, or press <strong>1</strong>, <strong>2</strong>, <strong>3</strong> on your keyboard.
-        </p>
-      </div>
-      <div className="intro-input-group">
-        <input
-          id="firstName"
-          type="text"
-          placeholder="Your first name"
-          value={firstName}
-          onChange={(e) => setFirstName(e.target.value)}
-          required
-        />
-        <input
-          id="email"
-          type="email"
-          placeholder="you@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-      </div>
-      <label className="consent-checkbox">
-        <input
-          type="checkbox"
-          checked={emailConsent}
-          onChange={(e) => setEmailConsent(e.target.checked)}
-        />
-        <span>
-          I agree to receive emails from Alison Rose. View{' '}
-          <a href="https://www.alisonrose.nl/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
-          {' '}&amp;{' '}
-          <a href="https://www.alisonrose.nl/terms-conditions" target="_blank" rel="noopener noreferrer">Terms</a>.
-        </span>
-      </label>
-      <div className="intro-actions">
-        <button
-          className="btn btn-primary"
-          onClick={onStart}
-          disabled={!firstName.trim() || !email || !email.includes('@')}
-        >
-          Begin Sorting
-        </button>
-        {savedProgress && (
-          <button
-            className="btn btn-secondary"
-            onClick={onResume}
-          >
-            Resume Previous Sort ({savedProgress.sortedCount} / {values.length} done)
-          </button>
-        )}
-      </div>
+      {/* How it works */}
+      <section className="landing-how">
+        <div className="landing-how-header">
+          <span className="landing-section-eyebrow">How it works</span>
+          <h2 className="landing-how-title">Three rounds. <strong>One honest list.</strong></h2>
+        </div>
+        <div className="landing-steps">
+          <div className="landing-step landing-step-1">
+            <div className="landing-step-num">01 &mdash; Sort</div>
+            <h3>Drag cards into piles</h3>
+            <p>Sort a full deck of values into three groups: very important, important, and not a priority right now.</p>
+          </div>
+          <div className="landing-step landing-step-2">
+            <div className="landing-step-num">02 &mdash; Narrow</div>
+            <h3>Keep cutting down</h3>
+            <p>Rounds two and three narrow your top pile until you&rsquo;re left with the five that matter most.</p>
+          </div>
+          <div className="landing-step landing-step-3">
+            <div className="landing-step-num">03 &mdash; Sit with it</div>
+            <h3>See what comes up</h3>
+            <p>Your final five are usually obvious once you see them, and a little surprising at the same time.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Email Capture */}
+      <section className="landing-capture" id="start">
+        <div className="landing-capture-inner">
+          <span className="landing-section-eyebrow landing-eyebrow-light">Get your results</span>
+          <h2>Drop your email and we&rsquo;ll <strong>send your results</strong> when you&rsquo;re done.</h2>
+          <p>You&rsquo;ll also get the occasional note from me about working in a way that honors who you are.</p>
+          <div className="landing-email-form">
+            <input
+              type="text"
+              className="landing-email-input"
+              placeholder="Your first name"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+            <input
+              type="email"
+              className="landing-email-input"
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <button
+              className="btn btn-primary"
+              onClick={onStart}
+              disabled={!canStart}
+            >
+              Start sorting
+            </button>
+          </div>
+          {savedProgress && (
+            <button className="btn btn-secondary landing-resume-btn" onClick={onResume}>
+              Resume previous sort ({savedProgress.sortedCount}&nbsp;/&nbsp;{values.length} done)
+            </button>
+          )}
+          <label className="landing-consent">
+            <input
+              type="checkbox"
+              checked={emailConsent}
+              onChange={(e) => setEmailConsent(e.target.checked)}
+            />
+            <span>
+              I agree to receive emails from Alison Rose.{' '}
+              <a href="https://www.alisonrose.nl/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy</a>
+              {' '}&amp;{' '}
+              <a href="https://www.alisonrose.nl/terms-conditions" target="_blank" rel="noopener noreferrer">Terms</a>.
+            </span>
+          </label>
+          <p className="landing-capture-fine">No pitch. Unsubscribe anytime.</p>
+        </div>
+      </section>
+
+      {/* Also */}
+      <section className="landing-also">
+        <span className="landing-also-label">More self-discovery tools</span>
+        <div className="landing-tool-cards">
+          <a href="https://alignment.alisonrose.nl" className="landing-tool-card">
+            <div className="landing-tool-card-label">Astrology tool</div>
+            <h3>In Alignment</h3>
+            <p>Your birth chart read through a business lens. Find the working rhythms, strengths, and seasons already built into you.</p>
+          </a>
+          <a href="https://alisonrose.nl/rare-company-club" className="landing-tool-card">
+            <div className="landing-tool-card-label">Community</div>
+            <h3>The Rare Company Club</h3>
+            <p>A social club for self-employed people who are done fragmenting themselves across every corner of the internet.</p>
+          </a>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="landing-footer">
+        <a href="https://alisonrose.nl" className="landing-foot-logo">Alison Rose &copy; 2026</a>
+        <div className="landing-foot-links">
+          <a href="https://alisonrose.nl/privacy">Privacy</a>
+          <a href="https://alisonrose.nl">Back to site</a>
+        </div>
+      </footer>
+
     </div>
   );
 }
@@ -1279,7 +1353,7 @@ function App() {
           />
         )}
       </div>
-      <SiteFooter />
+      {screen !== 'intro' && <SiteFooter />}
     </div>
   );
 }

@@ -12,17 +12,21 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: 'Work Sans', sans-serif;
   color: #0E0D0C;
-  background-color: #FFFDFC;
+  background-color: #FBF7EF;
   min-height: 100vh;
-  line-height: 1.5;
+  line-height: 1.65;
+  overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Scope One', serif;
-  font-weight: 400;
+  font-family: 'Quincy CF', Georgia, serif;
 }
 
 #root {
