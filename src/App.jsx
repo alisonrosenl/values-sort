@@ -223,130 +223,73 @@ function IntroScreen({ firstName, setFirstName, email, setEmail, emailConsent, s
     <div className="landing-page">
 
       {/* Nav */}
-      <nav className="landing-nav">
-        <a href="https://alisonrose.nl" className="landing-nav-logo">Alison Rose</a>
-        <div className="landing-nav-links">
-          <a href="https://values.alisonrose.nl" className="landing-nav-active">Values Sort</a>
-          <a href="https://alignment.alisonrose.nl">In Alignment</a>
-          <a href="https://alisonrose.nl">Website</a>
-        </div>
+      <div className="lp-nav-bar">
+      <nav className="lp-nav">
+        <a href="https://alisonrose.nl" className="lp-nav-logo">Alison Rose</a>
+        <ul className="lp-nav-links">
+          <li><a href="https://alisonrose.nl/tools">Tools</a></li>
+          <li><a href="https://alisonrose.nl/work">Work</a></li>
+          <li><a href="https://alisonrose.nl/rare-company-club">RCC</a></li>
+          <li><a href="https://alisonrose.nl/contact">Contact</a></li>
+        </ul>
       </nav>
+      </div>
 
-      {/* Hero */}
-      <section className="landing-hero">
-        <div className="landing-hero-left">
-          {friendName && (
-            <div className="landing-compare-banner">
-              <strong>{friendName}</strong> invited you to compare values!
-              Complete your sort to see how you match up.
-            </div>
-          )}
-          <span className="landing-eyebrow">Self-Discovery Tool</span>
-          <h1 className="landing-hero-title">Your values are already <strong>running the show.</strong></h1>
-          <p className="landing-hero-sub">
-            This card sort names them. Once you know which values are in charge,
-            the decisions that used to feel hard start making a lot more sense.
-          </p>
-          <div className="landing-cta-row">
-            <a href="#start" className="btn btn-primary">Start the sort</a>
-            <span className="landing-cta-note">Free &mdash; takes about 15 minutes</span>
+      {/* Hero + Form */}
+      <section className="lp-hero">
+        {friendName && (
+          <div className="lp-compare-banner">
+            <strong>{friendName}</strong> invited you to compare values.
+            Complete your sort to see how you match up.
           </div>
+        )}
+        <div className="lp-eyebrow-row">
+          <span className="lp-eyebrow">Free Tool</span>
+          <span className="lp-eyebrow lp-eyebrow-sage">Self-Discovery</span>
+          <span className="lp-eyebrow lp-eyebrow-terra">15 Minutes</span>
         </div>
-        <div className="landing-hero-visual">
-          <div className="card-stack">
-            <div className="vcard">
-              <span className="vcard-word">Security</span>
-              <span className="vcard-pip" style={{ background: '#B3C4BC' }}></span>
-            </div>
-            <div className="vcard">
-              <span className="vcard-word">Pleasure</span>
-              <span className="vcard-pip" style={{ background: '#C12731' }}></span>
-            </div>
-            <div className="vcard">
-              <span className="vcard-word">Freedom</span>
-              <span className="vcard-pip" style={{ background: '#B6873F' }}></span>
-            </div>
-          </div>
-        </div>
-      </section>
+        <h1>You already know what<br />you value. Sort it <em>out.</em></h1>
+        <p className="lp-subhead">A card sort that turns a vague sense of your priorities into a short, specific list.</p>
+        <p className="lp-body-copy">Work through a deck of 49 values, sort them into piles, and narrow down to the five that fit right now.</p>
 
-      {/* About */}
-      <section className="landing-about">
-        <div className="landing-about-inner">
-          <span className="landing-section-eyebrow">Why values</span>
-          <h2>When something keeps feeling off, it&rsquo;s usually a values conflict you haven&rsquo;t named yet.</h2>
-          <p>
-            The opportunity that looked good on paper but felt wrong. The direction you keep
-            circling back to. The work that drains you even when it&rsquo;s going well.
-            That tension has a source.
-          </p>
-          <p>
-            This is a classic coaching tool you can use on your own. You&rsquo;ll finish with a short
-            list of your top values and, if I had to guess, at least one that surprises you.
-          </p>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="landing-how">
-        <div className="landing-how-header">
-          <span className="landing-section-eyebrow">How it works</span>
-          <h2 className="landing-how-title">Three rounds. <strong>One honest list.</strong></h2>
-        </div>
-        <div className="landing-steps">
-          <div className="landing-step landing-step-1">
-            <div className="landing-step-num">01 &mdash; Sort</div>
-            <h3>Drag cards into piles</h3>
-            <p>Sort a full deck of values into three groups: very important, important, and not a priority right now.</p>
-          </div>
-          <div className="landing-step landing-step-2">
-            <div className="landing-step-num">02 &mdash; Narrow</div>
-            <h3>Keep cutting down</h3>
-            <p>Rounds two and three narrow your top pile until you&rsquo;re left with the five that matter most.</p>
-          </div>
-          <div className="landing-step landing-step-3">
-            <div className="landing-step-num">03 &mdash; Sit with it</div>
-            <h3>See what comes up</h3>
-            <p>Your final five are usually obvious once you see them, and a little surprising at the same time.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Email Capture */}
-      <section className="landing-capture" id="start">
-        <div className="landing-capture-inner">
-          <span className="landing-section-eyebrow landing-eyebrow-light">Get your results</span>
-          <h2>Drop your email and we&rsquo;ll <strong>send your results</strong> when you&rsquo;re done.</h2>
-          <p>You&rsquo;ll also get the occasional note from me about working in a way that honors who you are.</p>
-          <div className="landing-email-form">
-            <input
-              type="text"
-              className="landing-email-input"
-              placeholder="Your first name"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-            />
-            <input
-              type="email"
-              className="landing-email-input"
-              placeholder="your@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+        <div className="lp-form-panel">
+          <p className="lp-form-intro">Leave your email and I&rsquo;ll send your results when you&rsquo;re done.</p>
+          <div className="lp-email-form">
+            <div className="lp-field">
+              <label htmlFor="lp-first-name">First name</label>
+              <input
+                id="lp-first-name"
+                type="text"
+                className="lp-email-input"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+              />
+            </div>
+            <div className="lp-field">
+              <label htmlFor="lp-email">Email</label>
+              <input
+                id="lp-email"
+                type="email"
+                className="lp-email-input"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
             <button
-              className="btn btn-primary"
+              className="lp-btn-primary lp-btn-full"
               onClick={onStart}
               disabled={!canStart}
+              style={{ opacity: canStart ? 1 : 0.4, cursor: canStart ? 'pointer' : 'not-allowed' }}
             >
               Start sorting
             </button>
           </div>
           {savedProgress && (
-            <button className="btn btn-secondary landing-resume-btn" onClick={onResume}>
-              Resume previous sort ({savedProgress.sortedCount}&nbsp;/&nbsp;{values.length} done)
+            <button className="lp-resume-btn" onClick={onResume}>
+              Resume where you left off ({savedProgress.sortedCount}&nbsp;/&nbsp;{values.length} done)
             </button>
           )}
-          <label className="landing-consent">
+          <label className="lp-consent">
             <input
               type="checkbox"
               checked={emailConsent}
@@ -359,34 +302,31 @@ function IntroScreen({ firstName, setFirstName, email, setEmail, emailConsent, s
               <a href="https://www.alisonrose.nl/terms-conditions" target="_blank" rel="noopener noreferrer">Terms</a>.
             </span>
           </label>
-          <p className="landing-capture-fine">No pitch. Unsubscribe anytime.</p>
-        </div>
-      </section>
-
-      {/* Also */}
-      <section className="landing-also">
-        <span className="landing-also-label">More self-discovery tools</span>
-        <div className="landing-tool-cards">
-          <a href="https://alignment.alisonrose.nl" className="landing-tool-card">
-            <div className="landing-tool-card-label">Astrology tool</div>
-            <h3>In Alignment</h3>
-            <p>Your birth chart read through a business lens. Find the working rhythms, strengths, and seasons already built into you.</p>
-          </a>
-          <a href="https://alisonrose.nl/rare-company-club" className="landing-tool-card">
-            <div className="landing-tool-card-label">Community</div>
-            <h3>The Rare Company Club</h3>
-            <p>A social club for self-employed people who are done fragmenting themselves across every corner of the internet.</p>
-          </a>
+          <p className="lp-capture-fine">Unsubscribe anytime.</p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="landing-footer">
-        <a href="https://alisonrose.nl" className="landing-foot-logo">Alison Rose &copy; 2026</a>
-        <div className="landing-foot-links">
-          <a href="https://alisonrose.nl/privacy">Privacy</a>
-          <a href="https://alisonrose.nl">Back to site</a>
+      <footer className="lp-footer">
+        <a href="https://alisonrose.nl" className="lp-foot-brand">
+          Values Card Sort
+        </a>
+        <a href="https://instagram.com/alisonrose.nl" className="lp-foot-ig" aria-label="Instagram">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+            <circle cx="12" cy="12" r="4.5"/>
+            <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none"/>
+          </svg>
+        </a>
+        <div className="lp-foot-links">
+          <a href="https://alisonrose.nl/terms">Terms &amp; Conditions</a>
+          <span className="lp-foot-sep">·</span>
+          <a href="https://alisonrose.nl/privacy">Privacy Policy</a>
+          <span className="lp-foot-sep">·</span>
+          <a href="https://alisonrose.nl">alisonrose.nl</a>
         </div>
+        <p className="lp-foot-disclaimer">For entertainment and self-reflection purposes only. Not a substitute for professional advice.</p>
+        <p className="lp-foot-legal">KVK registration · Alison Rose · The Netherlands</p>
       </footer>
 
     </div>
@@ -658,11 +598,11 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
     ctx.fillRect(0, 0, w, h);
 
     // Top accent bar
-    ctx.fillStyle = '#D6E1DD';
+    ctx.fillStyle = '#EBEFEE';
     ctx.fillRect(0, 0, w, 8);
 
     // Left accent stripe
-    ctx.fillStyle = '#B6873F';
+    ctx.fillStyle = '#9F6C26';
     ctx.fillRect(0, 0, 6, h);
 
     // Fetch logo as blob to avoid CORS tainting the canvas
@@ -671,7 +611,7 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
       ctx.imageSmoothingQuality = 'high';
 
       // Header
-      ctx.fillStyle = '#507271';
+      ctx.fillStyle = '#1A1916';
       ctx.font = '32px "Scope One", serif';
       ctx.textAlign = 'center';
       const imageTitle = firstName
@@ -680,7 +620,7 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
       ctx.fillText(imageTitle, w / 2, headerY);
 
       // Mustard divider
-      ctx.strokeStyle = '#B6873F';
+      ctx.strokeStyle = '#9F6C26';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(w * 0.3, headerY + 20);
@@ -697,11 +637,11 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
       displayValues.forEach((v, i) => {
         const y = actualStartY + i * (cardH + cardGap);
 
-        // Card background — sage green
-        ctx.shadowColor = 'rgba(14, 13, 12, 0.06)';
+        // Card background — sage light
+        ctx.shadowColor = 'rgba(26, 25, 22, 0.06)';
         ctx.shadowBlur = 8;
         ctx.shadowOffsetY = 3;
-        ctx.fillStyle = '#D6E1DD';
+        ctx.fillStyle = '#EBEFEE';
         ctx.beginPath();
         ctx.roundRect(cardX, y, cardW, cardH, 8);
         ctx.fill();
@@ -716,19 +656,19 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
         ctx.fill();
 
         // Rank number in the sage strip
-        ctx.fillStyle = '#507271';
+        ctx.fillStyle = '#152E3A';
         ctx.font = 'bold 22px "Work Sans", sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(`${i + 1}`, cardX + 26, y + cardH / 2 + 8);
 
         // Title
-        ctx.fillStyle = '#0E0D0C';
+        ctx.fillStyle = '#1A1916';
         ctx.font = '600 18px "Work Sans", sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText(v.title, cardX + 68, y + 34);
 
         // Description
-        ctx.fillStyle = '#507271';
+        ctx.fillStyle = '#4A4845';
         ctx.font = 'italic 14px "Work Sans", sans-serif';
         ctx.fillText(v.description, cardX + 68, y + 58);
       });
@@ -740,7 +680,7 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
         const logoW = logoImg.naturalWidth * (logoH / logoImg.naturalHeight);
         ctx.drawImage(logoImg, (w - logoW) / 2, footerY - 18, logoW, logoH);
       }
-      ctx.fillStyle = '#B6873F';
+      ctx.fillStyle = '#9F6C26';
       ctx.font = '12px "Work Sans", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText('alisonrose.nl', w / 2, footerY + 12);
@@ -800,17 +740,17 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
     ctx.fillRect(0, 0, w, h);
 
     // Top accent
-    ctx.fillStyle = '#D6E1DD';
+    ctx.fillStyle = '#EBEFEE';
     ctx.fillRect(0, 0, w, 8);
 
     // Title
-    ctx.fillStyle = '#507271';
+    ctx.fillStyle = '#1A1916';
     ctx.font = '28px "Scope One", serif';
     ctx.textAlign = 'center';
     ctx.fillText('Values Comparison', w / 2, 60);
 
     // Divider
-    ctx.strokeStyle = '#B6873F';
+    ctx.strokeStyle = '#9F6C26';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(w * 0.3, 76);
@@ -822,7 +762,7 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
     const colR = w / 2 + 30;
     const colW = w / 2 - 90;
 
-    ctx.fillStyle = '#507271';
+    ctx.fillStyle = '#152E3A';
     ctx.font = '600 16px "Work Sans", sans-serif';
     ctx.textAlign = 'center';
     const myLabel = firstName || 'You';
@@ -830,7 +770,7 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
     ctx.fillText(friendName || 'Friend', colR + colW / 2, 110);
 
     // Center divider line
-    ctx.strokeStyle = '#D6E1DD';
+    ctx.strokeStyle = '#E2E0DC';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(w / 2, 120);
@@ -848,13 +788,13 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
         const isShared = otherSet.has(v.id);
 
         // Row background
-        ctx.fillStyle = isShared ? '#e6f4ec' : '#f5f5f5';
+        ctx.fillStyle = isShared ? '#F0E4CC' : '#F8F8F6';
         ctx.beginPath();
         ctx.roundRect(x, y, width, rowH - 6, 4);
         ctx.fill();
 
         // Text
-        ctx.fillStyle = isShared ? '#507271' : '#0E0D0C';
+        ctx.fillStyle = isShared ? '#9F6C26' : '#1A1916';
         ctx.font = isShared ? '600 14px "Work Sans", sans-serif' : '14px "Work Sans", sans-serif';
         ctx.textAlign = 'left';
         ctx.fillText(v.title + (isShared ? ' \u2605' : ''), x + 12, y + 22);
@@ -869,14 +809,14 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
     const sharedCount = myValues.filter((v) => theirTitles.has(v.id)).length;
     if (sharedCount > 0) {
       const summaryY = headerH + maxRows * rowH + 20;
-      ctx.fillStyle = '#B6873F';
+      ctx.fillStyle = '#9F6C26';
       ctx.font = '600 14px "Work Sans", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(`${sharedCount} shared value${sharedCount > 1 ? 's' : ''}`, w / 2, summaryY);
     }
 
     // Footer
-    ctx.fillStyle = '#B6873F';
+    ctx.fillStyle = '#9F6C26';
     ctx.font = '12px "Work Sans", sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('alisonrose.nl', w / 2, h - 20);

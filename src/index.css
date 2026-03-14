@@ -1,4 +1,12 @@
 @font-face {
+  font-family: 'Lumios Typewriter Used';
+  src: url('/fonts/LumiosTypewriterUsed.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
   font-family: 'Quincy CF';
   src: url('/fonts/QuincyCF-Light.otf') format('opentype');
   font-weight: 300;
@@ -63,8 +71,8 @@ html {
 
 body {
   font-family: 'Work Sans', sans-serif;
-  color: #0E0D0C;
-  background-color: #FBF7EF;
+  color: #1A1916;
+  background-color: #F8F8F6;
   min-height: 100vh;
   line-height: 1.65;
   overflow-x: hidden;
