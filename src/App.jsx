@@ -13,9 +13,6 @@ import './App.css';
 
 // --- Constants ---
 
-const LOGO_URL = 'https://images.squarespace-cdn.com/content/68138d98b173884d75ec5456/fd8f447b-6561-4611-845f-a462996635ab/NamePrintSmall.png?content-type=image%2Fpng';
-const MONOGRAM_URL = 'https://images.squarespace-cdn.com/content/68138d98b173884d75ec5456/24c580c0-22ac-4dc2-a41c-5d97c4f50b42/Monogram.png?content-type=image%2Fpng';
-
 const STORAGE_KEY = 'values-sort-progress';
 const HISTORY_KEY = 'values-sort-history';
 const TOP5_LIMIT = 5;
@@ -53,7 +50,7 @@ function shuffle(array) {
 function saveProgress(data) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch {}
+  } catch { /* ignore */ }
 }
 
 function loadProgress() {
@@ -68,7 +65,7 @@ function loadProgress() {
 function clearProgress() {
   try {
     localStorage.removeItem(STORAGE_KEY);
-  } catch {}
+  } catch { /* ignore */ }
 }
 
 function saveToHistory(result) {
@@ -76,7 +73,7 @@ function saveToHistory(result) {
     const existing = loadHistory();
     existing.push(result);
     localStorage.setItem(HISTORY_KEY, JSON.stringify(existing));
-  } catch {}
+  } catch { /* ignore */ }
 }
 
 function loadHistory() {
@@ -864,11 +861,48 @@ function subscribeToKit(email, firstName, resultsUrl) {
 
 // --- Main App ---
 
+function readUrlInit() {
+  const params = new URLSearchParams(window.location.search);
+
+  const resultsData = params.get('results');
+  if (resultsData) {
+    const decoded = decodeResults(resultsData);
+    if (decoded) {
+      return {
+        screen: 'results',
+        finalPiles: decoded,
+        top5Ids: decoded.top5Ids || [],
+        firstName: params.get('name') || '',
+        friendName: '',
+      };
+    }
+  }
+
+  let friendName = '';
+  const compareData = params.get('compare');
+  if (compareData) {
+    const decoded = decodeResults(compareData);
+    if (decoded) {
+      const fromName = params.get('from');
+      if (fromName) friendName = decodeURIComponent(fromName);
+    }
+  }
+
+  return {
+    screen: 'intro',
+    finalPiles: { veryImportant: [], important: [], notImportant: [] },
+    top5Ids: [],
+    firstName: '',
+    friendName,
+  };
+}
+
 function App() {
-  const [screen, setScreen] = useState('intro');
+  const [urlInit] = useState(readUrlInit);
+  const [screen, setScreen] = useState(urlInit.screen);
 
   // User info
-  const [firstName, setFirstName] = useState('');
+  const [firstName, setFirstName] = useState(urlInit.firstName);
   const [email, setEmail] = useState('');
   const [emailConsent, setEmailConsent] = useState(false);
 
@@ -880,47 +914,15 @@ function App() {
 
   // Top 5 pool + final state
   const [top5Pool, setTop5Pool] = useState([]);
-  const [top5Ids, setTop5Ids] = useState([]);
-  const [finalPiles, setFinalPiles] = useState({ veryImportant: [], important: [], notImportant: [] });
+  const [top5Ids, setTop5Ids] = useState(urlInit.top5Ids);
+  const [finalPiles, setFinalPiles] = useState(urlInit.finalPiles);
 
   // Social / history
-  const [friendPiles, setFriendPiles] = useState(null);
-  const [friendName, setFriendName] = useState('');
-  const [pastResults, setPastResults] = useState([]);
-  const [savedProgress, setSavedProgress] = useState(null);
-
-  // Load saved data on mount
-  useEffect(() => {
+  const [friendName] = useState(urlInit.friendName);
+  const [savedProgress, setSavedProgress] = useState(() => {
     const saved = loadProgress();
-    if (saved && saved.round === 'round1') setSavedProgress(saved);
-
-    setPastResults(loadHistory());
-
-    const params = new URLSearchParams(window.location.search);
-
-    const resultsData = params.get('results');
-    if (resultsData) {
-      const decoded = decodeResults(resultsData);
-      if (decoded) {
-        setFinalPiles(decoded);
-        setTop5Ids(decoded.top5Ids || []);
-        const nameParam = params.get('name');
-        if (nameParam) setFirstName(nameParam);
-        setScreen('results');
-        return;
-      }
-    }
-
-    const compareData = params.get('compare');
-    if (compareData) {
-      const decoded = decodeResults(compareData);
-      if (decoded) {
-        setFriendPiles(decoded);
-        const fromName = params.get('from');
-        if (fromName) setFriendName(decodeURIComponent(fromName));
-      }
-    }
-  }, []);
+    return saved && saved.round === 'round1' ? saved : null;
+  });
 
   // Auto-save round 1 progress
   useEffect(() => {
@@ -1012,7 +1014,6 @@ function App() {
       notImportant: piles.notImportant.map(v => ({ id: v.id, title: v.title })),
     };
     saveToHistory(result);
-    setPastResults(loadHistory());
   }, []);
 
   const handleTop5Confirm = useCallback((selectedIds) => {
