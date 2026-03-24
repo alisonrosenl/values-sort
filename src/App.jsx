@@ -160,9 +160,9 @@ function DraggableValueCard({ card, sortState, isSelected, onSelect }) {
       className={`val-card${sortState ? ' s-' + sortState : ''}${isDragging ? ' dragging' : ''}${isSelected ? ' fb-active' : ''}`}
       onClick={() => onSelect(card.id)}
     >
-      <span className="eyebrow pile-tag pile-tag-not eyebrow-fig">Not important</span>
-      <span className="eyebrow pile-tag pile-tag-imp eyebrow-sage">Important</span>
-      <span className="eyebrow pile-tag pile-tag-very eyebrow-rose">Very important</span>
+      <span className="eyebrow pile-tag pile-tag-not eyebrow-rose">Not important</span>
+      <span className="eyebrow pile-tag pile-tag-imp eyebrow-fig">Important</span>
+      <span className="eyebrow pile-tag pile-tag-very eyebrow-sage">Very important</span>
       <div className="val-name">{card.title}</div>
       <div className="val-desc">{card.description}</div>
     </div>
@@ -287,9 +287,9 @@ function GridSortScreen({
         <div className="gap-section">
           <div className="section-label">Your piles</div>
           <div className="zones-grid">
-            <DroppableZone pile="not"  label="Not Important to Me"  eyebrowClass="eyebrow-fig"     chips={sortedForPile('not')} />
-            <DroppableZone pile="imp"  label="Important to Me"      eyebrowClass="eyebrow-sage"    chips={sortedForPile('imp')} />
-            <DroppableZone pile="very" label="Very Important to Me" eyebrowClass="eyebrow-rose" chips={sortedForPile('very')} />
+            <DroppableZone pile="not"  label="Not Important to Me"  eyebrowClass="eyebrow-rose"    chips={sortedForPile('not')} />
+            <DroppableZone pile="imp"  label="Important to Me"      eyebrowClass="eyebrow-fig"     chips={sortedForPile('imp')} />
+            <DroppableZone pile="very" label="Very Important to Me" eyebrowClass="eyebrow-sage" chips={sortedForPile('very')} />
           </div>
         </div>
 
@@ -534,7 +534,7 @@ function Top5Screen({ pool, onConfirm, onBack }) {
               className={`val-card top5-selectable${selectedIds.includes(v.id) ? ' s-very' : ''}`}
               onClick={() => toggle(v.id)}
             >
-              <span className="eyebrow pile-tag pile-tag-very eyebrow-rose">Very important to me</span>
+              <span className="eyebrow pile-tag pile-tag-very eyebrow-sage">Very important to me</span>
               <div className="val-name">{v.title}</div>
               <div className="val-desc">{v.description}</div>
             </div>
@@ -795,7 +795,7 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver }) {
         <h2 className="res-section-heading">Your full sort</h2>
         <div className="res-breakdown-grid">
           <div className="res-breakdown-col">
-            <span className="eyebrow res-eyebrow-rose">Very Important</span>
+            <span className="eyebrow res-eyebrow-sage">Very Important</span>
             <span className="res-breakdown-count">{piles.veryImportant.length} values</span>
             <ul className="res-breakdown-list">
               {piles.veryImportant.map(v => (
@@ -807,7 +807,7 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver }) {
             </ul>
           </div>
           <div className="res-breakdown-col">
-            <span className="eyebrow res-eyebrow-sage">Important</span>
+            <span className="eyebrow res-eyebrow-fig">Important</span>
             <span className="res-breakdown-count">{piles.important.length} values</span>
             <ul className="res-breakdown-list">
               {piles.important.map(v => (
@@ -819,7 +819,7 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver }) {
             </ul>
           </div>
           <div className="res-breakdown-col">
-            <span className="eyebrow res-eyebrow-fig">Not Important</span>
+            <span className="eyebrow res-eyebrow-rose">Not Important</span>
             <span className="res-breakdown-count">{piles.notImportant.length} values</span>
             <ul className="res-breakdown-list">
               {piles.notImportant.map(v => (

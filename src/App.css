@@ -830,9 +830,9 @@
 }
 
 .top5-card.top5-selected {
-  border-color: var(--rose);
-  background: var(--rose-light);
-  box-shadow: 0 0 0 2px rgba(147, 73, 62, 0.2);
+  border-color: var(--sage);
+  background: var(--sage-light);
+  box-shadow: 0 0 0 2px rgba(122, 158, 148, 0.2);
 }
 
 .top5-card-title {
@@ -1667,13 +1667,13 @@
   color: var(--color-text-secondary);
 }
 
-.z-not  { border-color: var(--fig); }
-.z-imp  { border-color: var(--sage); }
-.z-very { border-color: var(--rose); }
+.z-not  { border-color: var(--rose); }
+.z-imp  { border-color: var(--fig); }
+.z-very { border-color: var(--sage); }
 
-.z-not.drag-over  { background: var(--fig-light); }
-.z-imp.drag-over  { background: var(--sage-light); }
-.z-very.drag-over { background: var(--rose-light); }
+.z-not.drag-over  { background: var(--rose-light); }
+.z-imp.drag-over  { background: var(--fig-light); }
+.z-very.drag-over { background: var(--sage-light); }
 
 .zone-chips {
   display: flex;
@@ -1745,9 +1745,9 @@
   white-space: nowrap;
 }
 
-.fb-not  { border-color: var(--fig);     background: var(--fig-light);     color: var(--fig); }
-.fb-imp  { border-color: var(--sage);    background: var(--sage-light);    color: var(--teal-mid); }
-.fb-very { border-color: var(--rose); background: var(--rose-light); color: var(--rose); }
+.fb-not  { border-color: var(--rose);    background: var(--rose-light);    color: var(--rose); }
+.fb-imp  { border-color: var(--fig);     background: var(--fig-light);     color: var(--fig); }
+.fb-very { border-color: var(--sage);    background: var(--sage-light);    color: var(--teal-mid); }
 
 .sort-tray-advance {
   font-family: 'Work Sans', sans-serif;
