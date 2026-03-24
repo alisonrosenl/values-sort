@@ -426,7 +426,7 @@ function IntroScreen({ firstName, setFirstName, email, setEmail, emailConsent, s
           <span className="lp-eyebrow lp-eyebrow-sage">Self-Discovery</span>
           <span className="lp-eyebrow lp-eyebrow-rose">15 Minutes</span>
         </div>
-        <h1>You already know what<br />you value. Sort it <em>out.</em></h1>
+        <h1>You already know what<br />you value. <em>Sort it out.</em></h1>
         <p className="lp-subhead">A card sort that turns a vague sense of your priorities into a short, specific list.</p>
         <p className="lp-body-copy">Work through a deck of 49 values, sort them into piles, and narrow down to the five that fit right now.</p>
 
