@@ -395,7 +395,7 @@ function SiteFooter() {
       </div>
       <p className="sf-credit">
         Adapted from the Personal Values Card Sort by W.R. Miller, J. C&rsquo;de Baca,
-        D.B. Matthews &amp; P.L. Wilbourne &mdash; University of New Mexico, 2001
+        D.B. Matthews &amp; P.L. Wilbourne, University of New Mexico, 2001
       </p>
       <p className="sf-legal">A. Rose Creative &middot; The Netherlands</p>
     </footer>
@@ -677,7 +677,7 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver }) {
         ctx.stroke();
 
         // Rank number — Quincy CF, sage-mid
-        ctx.fillStyle = '#4E7A70';
+        ctx.fillStyle = '#F2E0D6';
         ctx.font = 'bold 64px "Quincy CF", Georgia, serif';
         ctx.textAlign = 'left';
         ctx.fillText(`${i + 1}`, cardX + 20, cardY + cardH / 2 + 22);

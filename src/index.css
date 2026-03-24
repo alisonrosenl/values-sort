@@ -71,8 +71,8 @@ html {
 
 body {
   font-family: 'Work Sans', sans-serif;
-  color: #1A1916;
-  background-color: #F8F8F6;
+  color: var(--ink);
+  background-color: var(--off-white);
   min-height: 100vh;
   line-height: 1.65;
   overflow-x: hidden;

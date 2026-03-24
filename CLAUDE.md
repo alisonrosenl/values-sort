@@ -54,6 +54,7 @@ Logos:
 
 Brand reference:
   AlisonRoseBrand.md:     C:\Users\Alison Rose\Dropbox\AlisonCastillo\Alison Rose Claude\Alison Rose Brand Guidelines\AlisonRoseBrand.md
+  UX/UI patterns:         C:\Users\Alison Rose\Dropbox\AlisonCastillo\Alison Rose Claude\Alison Rose Brand Guidelines\uxui\SKILL.md
 ```
 
 Work Sans loads from Google Fonts CDN:
@@ -82,8 +83,8 @@ Values Tool matches the In Alignment design system — teal family as primary su
 --mustard:       #9F6C26
 --mustard-dark:  #8A5C1C   /* restricted: text on --mustard-light only */
 
---terra-light: #F2E0D6
---terra:       #965443
+--rose-light: #F2E0D6
+--rose:       #93493E
 
 --fig-light: #EAE0E6
 --fig:       #6B4D5E
@@ -107,7 +108,8 @@ Values Tool matches the In Alignment design system — teal family as primary su
 | Labels / Stamps / Eyebrows | Lumios Typewriter Used | Regular |
 
 **Rules:**
-- Minimum font size: 13.3px (10pt). No exceptions.
+- Body/UI minimum: **13px**. No exceptions.
+- Stamps, eyebrows, micro-labels: **11px minimum**.
 - Full opacity on all text. Use a lighter color token instead of reducing opacity.
 - Playfair Display is retired. Never use it.
 - Logo fonts stay in logos only.
@@ -132,6 +134,100 @@ Values Tool matches the In Alignment design system — teal family as primary su
 
 Base unit: 8px. All spacing values are multiples of 8 (4px for optical nudges only).
 
+| Token | Value |
+|-------|-------|
+| --space-xs | 4px |
+| --space-sm | 8px |
+| --space-md | 16px |
+| --space-lg | 24px |
+| --space-xl | 40px |
+| --space-2xl | 64px |
+
+Hero/page-level breathing room: 96–120px (explicit values, no token).
+
+---
+
+## Responsive Breakpoints
+
+| Breakpoint | Use |
+|------------|-----|
+| 900px | Hero sections stack vertically |
+| 768px | Mobile layout — primary threshold |
+| 640px | Header/footer reflow |
+| 600px | Small phone adjustments |
+
+---
+
+## Z-Index Scale
+
+Do not introduce values outside this scale without documenting them.
+
+| Layer | Value |
+|-------|-------|
+| Landing header | 100 |
+| Scroll-to-top button | 100 |
+| Nav dropdown | 200 |
+
+---
+
+## Shadow Tokens
+
+Cards use borders, not shadows. Shadows for lifted/floating states only.
+
+```css
+--shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 1px 4px rgba(0,0,0,0.02);
+--shadow-md: 0 2px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
+--shadow-lg: 0 4px 8px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.06);
+```
+
+---
+
+## Semantic Color Tokens
+
+| Token | Value | Use |
+|-------|-------|-----|
+| --color-bg | #F8F8F6 | Page background (alias for --off-white) |
+| --color-surface | #FFFFFF | Card/panel surface (alias for --white) |
+| --color-border-light | #ECEAE6 | Softer divider than --rule |
+| --color-error | #93493E | Error states (same value as --rose) |
+| --color-text-secondary | #4A4845 | Supporting text, metadata, captions |
+
+---
+
+## Button Variants
+
+Base: Work Sans 500, 14px, 40px min height, 12px 24px padding, 6px radius. Disabled: opacity 0.5, cursor not-allowed.
+
+| Variant | Style |
+|---------|-------|
+| .btn-primary | --mustard fill, white text |
+| .btn-secondary | 1px --ink border, --ink text |
+| .btn-ghost | No border, --rose or --mustard on hover |
+| .btn-danger | --rose border + text, fills --rose on hover |
+| .w-btn-ghost | White text + white border — dark surfaces only |
+
+---
+
+## Animations & Transitions
+
+Standard transitions: `0.2s` color/border/shadow · `0.15s` links · `0.12s` dropdown hover.
+
+Easing tokens:
+```css
+--ease-gentle: cubic-bezier(0.25, 0.1, 0.25, 1);
+--ease-reveal:  cubic-bezier(0.16, 1, 0.3, 1);
+```
+
+---
+
+## Max-Width System
+
+| Value | Use |
+|-------|-----|
+| 560px | Modals, footer inner, focused prose |
+| 680px | `--max-width` default — general sections |
+| 860px | Landing page hero and nav |
+
 ---
 
 ## Rules
@@ -141,9 +237,23 @@ Base unit: 8px. All spacing values are multiples of 8 (4px for optical nudges on
 - Mobile viewport tested before marking any feature complete
 - No heavy drop shadows
 - No full-saturation color fills as large background areas
-- Flaticons only for icons — no emojis in UI
-- Shadows follow brand only: `0 2px 8px rgba(26,25,22,0.06)` on lifted cards only
+- Icons: flat, clean SVG style (Flaticon aesthetic as reference). Inline SVG implementation. No emojis in UI.
 - Contrast standard: WCAG AA (4.5:1 body, 3:1 large text)
+- Input focus: border becomes --mustard + `box-shadow: 0 0 0 3px rgba(159,108,38,0.12)`
+- Error: `.form-error` — Work Sans 400, ~13.6px, --color-error
+- Progress bars: fill `--mustard`, track `--rule` 4px fully rounded. Never `--teal-mid` or hardcoded values.
+- Colored box-shadows allowed in color-coded interactive contexts (drag targets, pile indicators). Keep opacity ≤ 30%.
+- Footer background inherits page background. Landing page footer: #FFFFFF. Does not override.
+- Footer: all text --ink, links --mustard only. No social icons in footer.
+- Sage eyebrow/tag text: always `--teal-mid`. Never `--ink`.
+
+---
+
+## Retired Tokens — Do Not Use
+
+- `--sage-mid` (#4E7A70) — retired. Remove from code.
+- `--fig-dark` (#4A3342) — retired. Remove from code.
+- `--ink-secondary` — retired alias. Use `--color-text-secondary` (#4A4845) everywhere.
 
 ---
 
