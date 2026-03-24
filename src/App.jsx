@@ -5,7 +5,6 @@ import {
   useDroppable,
   PointerSensor,
   TouchSensor,
-  KeyboardSensor,
   useSensors,
   useSensor,
 } from '@dnd-kit/core';
@@ -22,21 +21,25 @@ const HISTORY_KEY = 'values-sort-history';
 const TOP5_LIMIT = 5;
 
 const VALUE_CONFLICTS = [
-  ['ACHIEVEMENT', 'INNER PEACE'],
-  ['AUTHORITY', 'HUMILITY'],
-  ['AUTONOMY', 'COOPERATION'],
-  ['ADVENTURE', 'SAFETY'],
-  ['COMFORT', 'CHALLENGE'],
-  ['SOLITUDE', 'POPULARITY'],
-  ['WEALTH', 'GENEROSITY'],
-  ['RATIONALITY', 'PASSION'],
-  ['ORDER', 'CHANGE'],
-  ['MODERATION', 'ADVENTURE'],
-  ['COMMITMENT', 'AUTONOMY'],
-  ['ROMANCE', 'SOLITUDE'],
+  ['ACHIEVEMENT', 'INNER PEACE',  'Big goals and a quiet mind don\'t always want the same things.'],
+  ['AUTHORITY',   'HUMILITY',     'Leading others and staying modest pull in different directions.'],
+  ['AUTONOMY',    'COOPERATION',  'Independence and deep collaboration both take up space.'],
+  ['ADVENTURE',   'SAFETY',       'The draw toward new experiences and the need for security show up in every big decision.'],
+  ['COMFORT',     'CHALLENGE',    'Growth usually costs comfort. Comfort usually costs growth.'],
+  ['SOLITUDE',    'POPULARITY',   'Time alone and wanting to be known by many are hard to serve equally.'],
+  ['WEALTH',      'GENEROSITY',   'Keeping and giving pull against each other, especially when resources feel limited.'],
+  ['RATIONALITY', 'PASSION',      'Logic and feeling don\'t always point the same direction.'],
+  ['ORDER',       'CHANGE',       'Systems and stability sit uneasily with growth and newness.'],
+  ['MODERATION',  'ADVENTURE',    'Balance and boldness are not always compatible.'],
+  ['COMMITMENT',  'AUTONOMY',     'Deep loyalty and full independence are in constant negotiation.'],
+  ['ROMANCE',     'SOLITUDE',     'Intense connection and time alone both need a lot from you.'],
 ];
 
 // --- Utilities ---
+
+function toTitleCase(str) {
+  return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+}
 
 function shuffle(array) {
   const shuffled = [...array];
@@ -127,19 +130,25 @@ function decodeResults(encoded) {
   }
 }
 
-// --- Draggable Card ---
+// --- Build Piles ---
 
-function DraggableCard({ card }) {
+function buildPiles(allCards, sortMap) {
+  return {
+    veryImportant: allCards.filter(c => sortMap[c.id] === 'very'),
+    important:     allCards.filter(c => sortMap[c.id] === 'imp'),
+    notImportant:  allCards.filter(c => sortMap[c.id] === 'not'),
+  };
+}
+
+// --- Draggable Value Card (grid) ---
+
+function DraggableValueCard({ card, sortState, isSelected, onSelect }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: 'current-card',
-    data: card,
+    id: String(card.id),
   });
 
   const style = transform
-    ? {
-        transform: `translate(${transform.x}px, ${transform.y}px)`,
-        zIndex: 100,
-      }
+    ? { transform: `translate(${transform.x}px, ${transform.y}px)`, zIndex: 100, position: 'relative' }
     : undefined;
 
   return (
@@ -148,40 +157,216 @@ function DraggableCard({ card }) {
       style={style}
       {...listeners}
       {...attributes}
-      className={`value-card card-enter ${isDragging ? 'dragging' : ''}`}
+      className={`val-card${sortState ? ' s-' + sortState : ''}${isDragging ? ' dragging' : ''}${isSelected ? ' fb-active' : ''}`}
+      onClick={() => onSelect(card.id)}
     >
-      <h2>{card.title}</h2>
-      <p>{card.description}</p>
+      <span className="eyebrow pile-tag pile-tag-not eyebrow-fig">Not important</span>
+      <span className="eyebrow pile-tag pile-tag-imp eyebrow-sage">Important</span>
+      <span className="eyebrow pile-tag pile-tag-very eyebrow-mustard">Very important</span>
+      <div className="val-name">{card.title}</div>
+      <div className="val-desc">{card.description}</div>
     </div>
   );
 }
 
-// --- Droppable Pile ---
+// --- Droppable Zone ---
 
-function DroppablePile({ id, label, cards, className }) {
-  const { setNodeRef, isOver } = useDroppable({ id });
-  const count = cards.length;
-  const topCard = cards[cards.length - 1];
+function DroppableZone({ pile, label, eyebrowClass, chips }) {
+  const { setNodeRef, isOver } = useDroppable({ id: 'zone-' + pile });
+  return (
+    <div ref={setNodeRef} className={`zone z-${pile}${isOver ? ' drag-over' : ''}`}>
+      <div className="zone-top">
+        <span className={`eyebrow ${eyebrowClass}`} style={{ marginBottom: 0 }}>{label}</span>
+        <div className="zone-count">{chips.length} {chips.length === 1 ? 'card' : 'cards'}</div>
+      </div>
+      <div className="zone-chips">
+        {chips.map(card => (
+          <div key={card.id} className="zone-chip">{card.title}</div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// --- Grid Sort Screen (shared: Round 1, 2, 3) ---
+
+function GridSortScreen({
+  roundNum, totalRounds, cards, sortMap, batchIndex,
+  onSort, onNextBatch, onContinue, onBack,
+  continueLabel, headerTitle, headerCopy, footerNote, onDevSkip,
+}) {
+  const useBatches = cards.length > 9;
+  const BATCH_SIZE = 9;
+
+  const batchCards = useBatches
+    ? cards.slice(batchIndex * BATCH_SIZE, (batchIndex + 1) * BATCH_SIZE)
+    : cards;
+
+  const batchComplete = batchCards.every(c => sortMap[c.id] != null);
+  const allComplete = cards.every(c => sortMap[c.id] != null);
+  const unsortedCount = cards.filter(c => sortMap[c.id] == null).length;
+  const progressPct = cards.length > 0 ? ((cards.length - unsortedCount) / cards.length) * 100 : 0;
+
+  const sortedForPile = (pile) => cards.filter(c => sortMap[c.id] === pile);
+
+  const [selectedId, setSelectedId] = useState(null);
+  const footerRef = useRef(null);
+
+  useEffect(() => {
+    if (allComplete && footerRef.current) {
+      footerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [allComplete]);
+
+  const handleCardClick = (cardId) => {
+    setSelectedId(prev => prev === cardId ? null : cardId);
+  };
+
+  const handleFallback = (pile) => {
+    if (!selectedId) return;
+    onSort(selectedId, pile);
+    setSelectedId(null);
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } })
+  );
+
+  const handleDragEnd = useCallback((event) => {
+    const { active, over } = event;
+    if (!over) return;
+    const cardId = parseInt(active.id);
+    const pile = over.id.replace('zone-', '');
+    onSort(cardId, pile);
+    if (selectedId === cardId) setSelectedId(null);
+  }, [onSort, selectedId]);
 
   return (
-    <div
-      ref={setNodeRef}
-      className={`pile ${className} ${isOver ? 'pile-over' : ''} ${count > 0 ? 'pile-has-cards' : ''}`}
-    >
-      <h3>{label}</h3>
-      <span className="pile-count">
-        {count} {count === 1 ? 'card' : 'cards'}
-      </span>
-      {count > 0 && (
-        <div className="pile-stack">
-          {count > 2 && <div className="pile-stack-card pile-stack-card-3" />}
-          {count > 1 && <div className="pile-stack-card pile-stack-card-2" />}
-          <div className="pile-stack-card pile-stack-card-1">
-            <div className="pile-stack-title">{topCard.title}</div>
-            <div className="pile-stack-desc">{topCard.description}</div>
+    <div className="round-screen">
+
+      {/* Header card */}
+      <div className="card gap-cards">
+        <div className="card-body">
+          <p className="round-meta">Round {roundNum} of {totalRounds}</p>
+          <h1 className="card-title">{headerTitle}</h1>
+          {headerCopy}
+        </div>
+        <div className="progress-strip">
+          <div className="step-dots">
+            {Array.from({ length: totalRounds }, (_, i) => (
+              <div key={i} className={`dot${i === roundNum - 1 ? ' active' : ''}`} />
+            ))}
+          </div>
+          <div className="progress-bar-wrap">
+            <div className="progress-bar-fill" style={{ width: `${progressPct}%` }} />
+          </div>
+          <div className="progress-label">{unsortedCount} of {cards.length} remaining</div>
+        </div>
+      </div>
+
+      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+
+        {/* Cards batch */}
+        <div className="gap-section">
+          <div className="section-instruction">Drag each card into a pile, or tap to select it first.</div>
+          <div className="val-grid">
+            {batchCards.map(card => (
+              <DraggableValueCard
+                key={card.id}
+                card={card}
+                sortState={sortMap[card.id] || null}
+                isSelected={selectedId === card.id}
+                onSelect={handleCardClick}
+              />
+            ))}
           </div>
         </div>
-      )}
+
+        {/* Drop zones */}
+        <div className="gap-section">
+          <div className="section-label">Your piles</div>
+          <div className="zones-grid">
+            <DroppableZone pile="not"  label="Not Important to Me"  eyebrowClass="eyebrow-fig"     chips={sortedForPile('not')} />
+            <DroppableZone pile="imp"  label="Important to Me"      eyebrowClass="eyebrow-sage"    chips={sortedForPile('imp')} />
+            <DroppableZone pile="very" label="Very Important to Me" eyebrowClass="eyebrow-mustard" chips={sortedForPile('very')} />
+          </div>
+        </div>
+
+      </DndContext>
+
+      {/* Floating tray — sort fallback OR batch advance */}
+      {(() => {
+        const selectedCard = selectedId ? cards.find(c => c.id === selectedId) : null;
+        const trayOpen = !!selectedId || (useBatches && batchComplete);
+        const trayMode = selectedId ? 'sort' : 'advance';
+        return (
+          <div className={`sort-tray${trayOpen ? ' open' : ''}`}>
+            {trayMode === 'sort' ? (
+              <>
+                <div className="sort-tray-label">{selectedCard ? selectedCard.title : ''}</div>
+                <div className="sort-tray-btns">
+                  <button className="fallback-btn fb-not"  onClick={() => handleFallback('not')}>Not important</button>
+                  <button className="fallback-btn fb-imp"  onClick={() => handleFallback('imp')}>Important</button>
+                  <button className="fallback-btn fb-very" onClick={() => handleFallback('very')}>Very important</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="sort-tray-label">
+                  {allComplete ? 'All cards sorted' : 'Batch complete'}
+                </div>
+                <div className="sort-tray-btns">
+                  <button
+                    className="sort-tray-advance"
+                    onClick={allComplete ? onContinue : onNextBatch}
+                  >
+                    {allComplete ? continueLabel : 'Next batch \u2192'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* Footer */}
+      <div className="footer-card" ref={footerRef}>
+        <p className="footer-note">{footerNote}</p>
+        {onDevSkip && (
+          <button onClick={onDevSkip} style={{ fontSize: 11, color: '#999', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+            dev: skip
+          </button>
+        )}
+        <div className="btn-row">
+          <button className="btn-ghost" onClick={onBack}>Back</button>
+          <button
+            className="btn-primary"
+            onClick={allComplete ? onContinue : undefined}
+            disabled={!allComplete}
+            style={{ opacity: allComplete ? 1 : 0.35, cursor: allComplete ? 'pointer' : 'not-allowed' }}
+          >
+            {continueLabel}
+          </button>
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
+// --- Site Nav ---
+
+function SiteNav() {
+  return (
+    <div className="lp-nav-bar">
+      <nav className="lp-nav">
+        <a href="https://alisonrose.nl" className="lp-nav-logo">Values Card Sort</a>
+        <ul className="lp-nav-links">
+          <li><a href="https://alisonrose.nl/toolkit">Resources</a></li>
+          <li><a href="https://alisonrose.nl/contact">Contact</a></li>
+        </ul>
+      </nav>
     </div>
   );
 }
@@ -191,25 +376,28 @@ function DroppablePile({ id, label, cards, className }) {
 function SiteFooter() {
   return (
     <footer className="site-footer">
-      <div className="footer-brand">
-        <a href="https://alisonrose.nl" target="_blank" rel="noopener noreferrer" className="footer-logo-link">
-          <img src={MONOGRAM_URL} alt="Alison Rose" className="footer-logo" />
-        </a>
+      <div className="sf-brand">
+        Values Card Sort
       </div>
-      <div className="footer-disclaimer">
-        This tool is for personal reflection and self-discovery only.
-        It is not a substitute for professional psychological, medical, or therapeutic advice.
-        If you are experiencing a mental health concern, please consult a qualified professional.
-      </div>
-      <div className="footer-links">
+      <div className="sf-links">
+        <a href="https://alisonrose.nl/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+        <span className="sf-sep">&middot;</span>
+        <a href="https://alisonrose.nl/terms" target="_blank" rel="noopener noreferrer">Terms</a>
+        <span className="sf-sep">&middot;</span>
         <a href="https://alisonrose.nl" target="_blank" rel="noopener noreferrer">alisonrose.nl</a>
-        <span className="footer-sep">&middot;</span>
-        <span className="footer-credit">
-          Adapted from the Personal Values Card Sort by
-          W.R. Miller, J. C&rsquo;de Baca, D.B. Matthews, P.L. Wilbourne
-          &mdash; University of New Mexico, 2001
-        </span>
       </div>
+      <p className="sf-disclaimer">For entertainment and self-reflection purposes only.<br />Not a substitute for professional advice.</p>
+      <div className="sf-also">
+        Also by Alison Rose:{' '}
+        <a href="https://alignment.alisonrose.nl" target="_blank" rel="noopener noreferrer">In Alignment</a>
+        <span className="sf-sep">&middot;</span>
+        <a href="https://www.alisonrose.nl/the-rare-company-club" target="_blank" rel="noopener noreferrer">The Rare Company Club</a>
+      </div>
+      <p className="sf-credit">
+        Adapted from the Personal Values Card Sort by W.R. Miller, J. C&rsquo;de Baca,
+        D.B. Matthews &amp; P.L. Wilbourne &mdash; University of New Mexico, 2001
+      </p>
+      <p className="sf-legal">A. Rose Creative &middot; The Netherlands</p>
     </footer>
   );
 }
@@ -223,17 +411,7 @@ function IntroScreen({ firstName, setFirstName, email, setEmail, emailConsent, s
     <div className="landing-page">
 
       {/* Nav */}
-      <div className="lp-nav-bar">
-      <nav className="lp-nav">
-        <a href="https://alisonrose.nl" className="lp-nav-logo">Alison Rose</a>
-        <ul className="lp-nav-links">
-          <li><a href="https://alisonrose.nl/tools">Tools</a></li>
-          <li><a href="https://alisonrose.nl/work">Work</a></li>
-          <li><a href="https://alisonrose.nl/rare-company-club">RCC</a></li>
-          <li><a href="https://alisonrose.nl/contact">Contact</a></li>
-        </ul>
-      </nav>
-      </div>
+      <SiteNav />
 
       {/* Hero + Form */}
       <section className="lp-hero">
@@ -307,234 +485,98 @@ function IntroScreen({ firstName, setFirstName, email, setEmail, emailConsent, s
       </section>
 
       {/* Footer */}
-      <footer className="lp-footer">
-        <a href="https://alisonrose.nl" className="lp-foot-brand">
-          Values Card Sort
-        </a>
-        <a href="https://instagram.com/alisonrose.nl" className="lp-foot-ig" aria-label="Instagram">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-            <circle cx="12" cy="12" r="4.5"/>
-            <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none"/>
-          </svg>
-        </a>
-        <div className="lp-foot-links">
-          <a href="https://alisonrose.nl/terms">Terms &amp; Conditions</a>
-          <span className="lp-foot-sep">·</span>
-          <a href="https://alisonrose.nl/privacy">Privacy Policy</a>
-          <span className="lp-foot-sep">·</span>
-          <a href="https://alisonrose.nl">alisonrose.nl</a>
-        </div>
-        <p className="lp-foot-disclaimer">For entertainment and self-reflection purposes only. Not a substitute for professional advice.</p>
-        <p className="lp-foot-legal">KVK registration · Alison Rose · The Netherlands</p>
-      </footer>
+      <SiteFooter />
 
     </div>
   );
 }
 
-function SortingScreen({ currentCard, totalCards, sortedCount, piles, onSort, onUndo, onFinishEarly, canUndo }) {
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
-    useSensor(KeyboardSensor)
-  );
-
-  const handleDragEnd = useCallback(
-    (event) => {
-      const { over, delta } = event;
-      if (over) {
-        onSort(over.id);
-        return;
-      }
-      // Swipe gesture fallback — if not dropped on a pile, use horizontal direction
-      if (Math.abs(delta.x) > 60) {
-        if (delta.x < -60) {
-          onSort('notImportant');
-        } else if (delta.x > 60) {
-          onSort('veryImportant');
-        }
-      } else if (delta.y > 60) {
-        onSort('important');
-      }
-    },
-    [onSort]
-  );
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      switch (e.key) {
-        case '1':
-          onSort('notImportant');
-          break;
-        case '2':
-          onSort('important');
-          break;
-        case '3':
-          onSort('veryImportant');
-          break;
-        case 'z':
-          if ((e.ctrlKey || e.metaKey) && canUndo) {
-            e.preventDefault();
-            onUndo();
-          }
-          break;
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onSort, onUndo, canUndo]);
-
-  if (!currentCard) return null;
-
-  return (
-    <div className="sorting-screen">
-      <h1 className="sorting-title">Personal Values Card Sort</h1>
-      <div className="progress-bar-container">
-        <div className="progress-label">
-          <span>Card {sortedCount + 1} of {totalCards}</span>
-          <span>{Math.round((sortedCount / totalCards) * 100)}%</span>
-        </div>
-        <div className="progress-track">
-          <div
-            className="progress-fill"
-            style={{ width: `${(sortedCount / totalCards) * 100}%` }}
-          />
-        </div>
-      </div>
-
-      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-        <div className="sorting-area">
-          <div className="card-deck">
-            <DraggableCard key={currentCard.id} card={currentCard} />
-          </div>
-
-          <p className="sort-hint">
-            Drag the card, tap a button, or press 1 / 2 / 3 &mdash; press Z or use the undo button to go back
-          </p>
-
-          <div className="piles-container">
-            <DroppablePile
-              id="notImportant"
-              label="Not Important to Me"
-              cards={piles.notImportant}
-              className="pile-not-important"
-            />
-            <DroppablePile
-              id="important"
-              label="Important to Me"
-              cards={piles.important}
-              className="pile-important"
-            />
-            <DroppablePile
-              id="veryImportant"
-              label="Very Important to Me"
-              cards={piles.veryImportant}
-              className="pile-very-important"
-            />
-          </div>
-
-          <div className="quick-sort-buttons">
-            <button
-              className="btn btn-not-important"
-              onClick={() => onSort('notImportant')}
-            >
-              Not Important <span className="key-hint">1</span>
-            </button>
-            <button
-              className="btn btn-important"
-              onClick={() => onSort('important')}
-            >
-              Important <span className="key-hint">2</span>
-            </button>
-            <button
-              className="btn btn-very-important"
-              onClick={() => onSort('veryImportant')}
-            >
-              Very Important <span className="key-hint">3</span>
-            </button>
-          </div>
-
-          <div className="sort-actions">
-            {canUndo && (
-              <button className="btn btn-undo" onClick={onUndo}>
-                Undo
-              </button>
-            )}
-            {sortedCount > 0 && (
-              <button className="btn btn-finish-early" onClick={onFinishEarly}>
-                Finish Early
-              </button>
-            )}
-          </div>
-        </div>
-      </DndContext>
-    </div>
-  );
-}
-
-function Top5Screen({ veryImportant, onConfirm }) {
-  const [selected, setSelected] = useState(() =>
-    veryImportant.slice(0, TOP5_LIMIT).map((v) => v.id)
-  );
+function Top5Screen({ pool, onConfirm, onBack }) {
+  const [selectedIds, setSelectedIds] = useState([]);
 
   const toggle = (id) => {
-    setSelected((prev) => {
+    setSelectedIds((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id);
       if (prev.length >= TOP5_LIMIT) return prev;
       return [...prev, id];
     });
   };
 
+  const progressPct = (selectedIds.length / TOP5_LIMIT) * 100;
+
   return (
-    <div className="top5-screen">
-      <h1>Choose Your Top 5</h1>
-      <p className="top5-subtitle">
-        You marked <strong>{veryImportant.length}</strong> values as very important.
-        Now narrow it down to the <strong>{TOP5_LIMIT}</strong> that matter most.
-      </p>
-      <p className="top5-count">
-        {selected.length} of {TOP5_LIMIT} selected
-      </p>
-      <div className="top5-grid">
-        {veryImportant.map((v) => (
-          <button
-            key={v.id}
-            className={`top5-card ${selected.includes(v.id) ? 'top5-selected' : ''}`}
-            onClick={() => toggle(v.id)}
-          >
-            <div className="top5-card-title">{v.title}</div>
-            <div className="top5-card-desc">{v.description}</div>
+    <div className="round-screen">
+
+      <div className="card gap-cards">
+        <div className="card-body">
+          <p className="round-meta">Round 2 of 2</p>
+          <h1 className="card-title">Choose your top five.</h1>
+          <p>These are the values that shape everything. Pick the five that feel non-negotiable right now.</p>
+        </div>
+        <div className="progress-strip">
+          <div className="step-dots">
+            <div className="dot" />
+            <div className="dot active" />
+          </div>
+          <div className="progress-bar-wrap">
+            <div className="progress-bar-fill" style={{ width: `${progressPct}%` }} />
+          </div>
+          <div className="progress-label">{selectedIds.length} of {TOP5_LIMIT} chosen</div>
+        </div>
+      </div>
+
+      <div className="gap-section">
+        <div className="section-label">Your shortlist</div>
+        <div className="val-grid">
+          {pool.map((v) => (
+            <div
+              key={v.id}
+              className={`val-card top5-selectable${selectedIds.includes(v.id) ? ' s-very' : ''}`}
+              onClick={() => toggle(v.id)}
+            >
+              <span className="eyebrow pile-tag pile-tag-very eyebrow-mustard">Very important to me</span>
+              <div className="val-name">{v.title}</div>
+              <div className="val-desc">{v.description}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="footer-card">
+        <p className="footer-note">Your five core values.</p>
+        {import.meta.env.DEV && (
+          <button onClick={() => onConfirm(pool.slice(0, TOP5_LIMIT).map(v => v.id))} style={{ fontSize: 11, color: '#999', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+            dev: skip
           </button>
-        ))}
+        )}
+        <div className="btn-row">
+          <button className="btn-ghost" onClick={onBack}>Back</button>
+          <button
+            className="btn-primary"
+            onClick={() => onConfirm(selectedIds)}
+            disabled={selectedIds.length !== TOP5_LIMIT}
+            style={{ opacity: selectedIds.length === TOP5_LIMIT ? 1 : 0.35, cursor: selectedIds.length === TOP5_LIMIT ? 'pointer' : 'not-allowed' }}
+          >
+            Confirm my top five
+          </button>
+        </div>
       </div>
-      <div className="top5-actions">
-        <button
-          className="btn btn-primary"
-          onClick={() => onConfirm(selected)}
-          disabled={selected.length !== TOP5_LIMIT}
-        >
-          Confirm My Top {TOP5_LIMIT}
-        </button>
-      </div>
+
     </div>
   );
 }
 
-function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPiles, friendName, pastResults, setPastResults }) {
+function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver }) {
   const canvasRef = useRef(null);
-  const compareCanvasRef = useRef(null);
 
   const top5Values = top5Ids.length > 0
     ? piles.veryImportant.filter((v) => top5Ids.includes(v.id))
-    : [];
+    : piles.veryImportant.slice(0, 5);
 
-  // Detect value conflicts
+  // Detect value conflicts in the very important pile
   const conflicts = VALUE_CONFLICTS.filter(([a, b]) => {
-    const topTitles = piles.veryImportant.map((v) => v.title);
-    return topTitles.includes(a) && topTitles.includes(b);
+    const titles = piles.veryImportant.map((v) => v.title);
+    return titles.includes(a) && titles.includes(b);
   });
 
   const [linkCopied, setLinkCopied] = useState(false);
@@ -572,118 +614,94 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
   const handleDownloadImage = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const scale = 2;
-    const w = 1080;
 
-    // Top 5 or Very Important
-    const displayValues = top5Values.length > 0 ? top5Values : piles.veryImportant.slice(0, 10);
+    // Wait for fonts to be ready so Quincy CF renders correctly
+    document.fonts.ready.then(() => {
+      const ctx = canvas.getContext('2d');
+      const scale = 2;
+      const w = 1080;
+      const pad = 72;
+      const headerH = 220;
+      const cardH = 96;
+      const cardGap = 12;
+      const footerH = 80;
 
-    // Layout constants
-    const pad = 60;
-    const cardH = 80;
-    const cardGap = 16;
-    const headerY = 100;
-    const startY = 160;
-    const footerH = 80;
-    const contentH = startY + displayValues.length * (cardH + cardGap) + footerH;
-    const h = Math.max(w, contentH); // at least square
+      const displayValues = top5Values.length > 0 ? top5Values : piles.veryImportant.slice(0, 5);
+      const cardsH = displayValues.length * (cardH + cardGap) - cardGap;
+      const h = headerH + 48 + cardsH + 48 + footerH;
 
-    canvas.width = w * scale;
-    canvas.height = h * scale;
-    ctx.scale(scale, scale);
+      canvas.width = w * scale;
+      canvas.height = h * scale;
+      ctx.scale(scale, scale);
 
-    // Background — warm off-white
-    ctx.fillStyle = '#FFFDFC';
-    ctx.fillRect(0, 0, w, h);
+      // Background
+      ctx.fillStyle = '#F8F8F6';
+      ctx.fillRect(0, 0, w, h);
 
-    // Top accent bar
-    ctx.fillStyle = '#EBEFEE';
-    ctx.fillRect(0, 0, w, 8);
+      // Sage-light header band
+      ctx.fillStyle = '#EBEFEE';
+      ctx.fillRect(0, 0, w, headerH);
 
-    // Left accent stripe
-    ctx.fillStyle = '#9F6C26';
-    ctx.fillRect(0, 0, 6, h);
-
-    // Fetch logo as blob to avoid CORS tainting the canvas
-    const drawImage = (logoImg) => {
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-
-      // Header
-      ctx.fillStyle = '#1A1916';
-      ctx.font = '32px "Scope One", serif';
+      // Eyebrow label
+      ctx.fillStyle = '#1E4457';
+      ctx.font = '500 13px "Work Sans", sans-serif';
       ctx.textAlign = 'center';
-      const imageTitle = firstName
-        ? `${firstName}\u2019s Top ${displayValues.length} Values`
-        : `My Top ${displayValues.length} Values`;
-      ctx.fillText(imageTitle, w / 2, headerY);
+      ctx.letterSpacing = '0.11em';
+      ctx.fillText('VALUES CARD SORT', w / 2, 64);
+      ctx.letterSpacing = '0';
 
-      // Mustard divider
-      ctx.strokeStyle = '#9F6C26';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(w * 0.3, headerY + 20);
-      ctx.lineTo(w * 0.7, headerY + 20);
-      ctx.stroke();
+      // Quincy CF headline
+      const headline = firstName ? `${firstName}\u2019s top five values.` : 'My top five values.';
+      ctx.fillStyle = '#1A1916';
+      ctx.font = 'bold 52px "Quincy CF", Georgia, serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(headline, w / 2, 148);
 
-      // Value cards — centered in available space
+      // Mustard rule under header
+      ctx.fillStyle = '#9F6C26';
+      ctx.fillRect(0, headerH - 3, w, 3);
+
+      // Value cards
       const cardX = pad;
       const cardW = w - pad * 2;
-      const cardsBlockH = displayValues.length * (cardH + cardGap) - cardGap;
-      const cardsStartY = startY + ((h - startY - footerH - cardsBlockH) / 2);
-      const actualStartY = Math.max(startY, cardsStartY);
+      let cardY = headerH + 48;
 
       displayValues.forEach((v, i) => {
-        const y = actualStartY + i * (cardH + cardGap);
-
-        // Card background — sage light
-        ctx.shadowColor = 'rgba(26, 25, 22, 0.06)';
-        ctx.shadowBlur = 8;
-        ctx.shadowOffsetY = 3;
-        ctx.fillStyle = '#EBEFEE';
-        ctx.beginPath();
-        ctx.roundRect(cardX, y, cardW, cardH, 8);
-        ctx.fill();
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetY = 0;
-
-        // White inset for text area
+        // Card background — white with rule border
         ctx.fillStyle = '#FFFFFF';
+        ctx.strokeStyle = '#E2E0DC';
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.roundRect(cardX + 52, y + 6, cardW - 62, cardH - 12, 6);
+        ctx.roundRect(cardX, cardY, cardW, cardH, 8);
         ctx.fill();
+        ctx.stroke();
 
-        // Rank number in the sage strip
-        ctx.fillStyle = '#152E3A';
-        ctx.font = 'bold 22px "Work Sans", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`${i + 1}`, cardX + 26, y + cardH / 2 + 8);
-
-        // Title
-        ctx.fillStyle = '#1A1916';
-        ctx.font = '600 18px "Work Sans", sans-serif';
+        // Rank number — Quincy CF, sage-mid
+        ctx.fillStyle = '#4E7A70';
+        ctx.font = 'bold 64px "Quincy CF", Georgia, serif';
         ctx.textAlign = 'left';
-        ctx.fillText(v.title, cardX + 68, y + 34);
+        ctx.fillText(`${i + 1}`, cardX + 20, cardY + cardH / 2 + 22);
+
+        // Title — Quincy CF, title case
+        ctx.fillStyle = '#1A1916';
+        ctx.font = '400 22px "Quincy CF", Georgia, serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(toTitleCase(v.title), cardX + 110, cardY + 38);
 
         // Description
         ctx.fillStyle = '#4A4845';
-        ctx.font = 'italic 14px "Work Sans", sans-serif';
-        ctx.fillText(v.description, cardX + 68, y + 58);
+        ctx.font = '400 15px "Work Sans", sans-serif';
+        ctx.fillText(v.description, cardX + 110, cardY + 64);
+
+        cardY += cardH + cardGap;
       });
 
-      // Footer — logo + URL
-      const footerY = h - footerH / 2;
-      if (logoImg) {
-        const logoH = 18;
-        const logoW = logoImg.naturalWidth * (logoH / logoImg.naturalHeight);
-        ctx.drawImage(logoImg, (w - logoW) / 2, footerY - 18, logoW, logoH);
-      }
+      // Footer
+      const footerY = cardY + 32;
       ctx.fillStyle = '#9F6C26';
-      ctx.font = '12px "Work Sans", sans-serif';
+      ctx.font = '400 14px "Work Sans", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('alisonrose.nl', w / 2, footerY + 12);
+      ctx.fillText('values.alisonrose.nl', w / 2, footerY);
 
       // Download / Share
       canvas.toBlob((blob) => {
@@ -699,340 +717,128 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver, friendPi
           URL.revokeObjectURL(link.href);
         }
       }, 'image/png');
-    };
-
-    // Fetch logo as blob to avoid CORS canvas tainting on mobile
-    fetch(LOGO_URL)
-      .then((r) => r.blob())
-      .then((blob) => {
-        const logoImg = new Image();
-        logoImg.onload = () => {
-          URL.revokeObjectURL(logoImg.src);
-          drawImage(logoImg);
-        };
-        logoImg.src = URL.createObjectURL(blob);
-      })
-      .catch(() => drawImage(null));
+    });
   }, [piles, top5Values, firstName]);
-
-  const handleDownloadComparison = useCallback(() => {
-    if (!friendPiles) return;
-    const canvas = compareCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const scale = 2;
-    const w = 1080;
-
-    const myValues = piles.veryImportant;
-    const theirValues = friendPiles.veryImportant;
-    const maxRows = Math.max(myValues.length, theirValues.length);
-    const rowH = 36;
-    const headerH = 160;
-    const footerH = 60;
-    const h = Math.max(w, headerH + maxRows * rowH + 40 + footerH);
-
-    canvas.width = w * scale;
-    canvas.height = h * scale;
-    ctx.scale(scale, scale);
-
-    // Background
-    ctx.fillStyle = '#FFFDFC';
-    ctx.fillRect(0, 0, w, h);
-
-    // Top accent
-    ctx.fillStyle = '#EBEFEE';
-    ctx.fillRect(0, 0, w, 8);
-
-    // Title
-    ctx.fillStyle = '#1A1916';
-    ctx.font = '28px "Scope One", serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Values Comparison', w / 2, 60);
-
-    // Divider
-    ctx.strokeStyle = '#9F6C26';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(w * 0.3, 76);
-    ctx.lineTo(w * 0.7, 76);
-    ctx.stroke();
-
-    // Column headers
-    const colL = 60;
-    const colR = w / 2 + 30;
-    const colW = w / 2 - 90;
-
-    ctx.fillStyle = '#152E3A';
-    ctx.font = '600 16px "Work Sans", sans-serif';
-    ctx.textAlign = 'center';
-    const myLabel = firstName || 'You';
-    ctx.fillText(myLabel, colL + colW / 2, 110);
-    ctx.fillText(friendName || 'Friend', colR + colW / 2, 110);
-
-    // Center divider line
-    ctx.strokeStyle = '#E2E0DC';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(w / 2, 120);
-    ctx.lineTo(w / 2, headerH + maxRows * rowH + 20);
-    ctx.stroke();
-
-    // Shared values lookup
-    const myTitles = new Set(myValues.map((v) => v.id));
-    const theirTitles = new Set(theirValues.map((v) => v.id));
-
-    // Draw values
-    const drawCol = (vals, x, width, otherSet, startY) => {
-      vals.forEach((v, i) => {
-        const y = startY + i * rowH;
-        const isShared = otherSet.has(v.id);
-
-        // Row background
-        ctx.fillStyle = isShared ? '#F0E4CC' : '#F8F8F6';
-        ctx.beginPath();
-        ctx.roundRect(x, y, width, rowH - 6, 4);
-        ctx.fill();
-
-        // Text
-        ctx.fillStyle = isShared ? '#9F6C26' : '#1A1916';
-        ctx.font = isShared ? '600 14px "Work Sans", sans-serif' : '14px "Work Sans", sans-serif';
-        ctx.textAlign = 'left';
-        ctx.fillText(v.title + (isShared ? ' \u2605' : ''), x + 12, y + 22);
-      });
-    };
-
-    const valStartY = headerH;
-    drawCol(myValues, colL, colW, theirTitles, valStartY);
-    drawCol(theirValues, colR, colW, myTitles, valStartY);
-
-    // Shared count
-    const sharedCount = myValues.filter((v) => theirTitles.has(v.id)).length;
-    if (sharedCount > 0) {
-      const summaryY = headerH + maxRows * rowH + 20;
-      ctx.fillStyle = '#9F6C26';
-      ctx.font = '600 14px "Work Sans", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(`${sharedCount} shared value${sharedCount > 1 ? 's' : ''}`, w / 2, summaryY);
-    }
-
-    // Footer
-    ctx.fillStyle = '#9F6C26';
-    ctx.font = '12px "Work Sans", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('alisonrose.nl', w / 2, h - 20);
-
-    // Download / Share
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const file = new File([blob], 'ValuesComparison.png', { type: 'image/png' });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({ files: [file] }).catch(() => {});
-      } else {
-        const link = document.createElement('a');
-        link.download = 'ValuesComparison.png';
-        link.href = URL.createObjectURL(blob);
-        link.click();
-        URL.revokeObjectURL(link.href);
-      }
-    }, 'image/png');
-  }, [piles, friendPiles, firstName, friendName]);
 
   return (
     <div className="results-screen">
-      <img src={LOGO_URL} alt="Alison Rose" className="results-logo" />
-      <h1>Here are your five core values.</h1>
-      <p className="results-subtitle">
-        Keep these somewhere you&rsquo;ll see them. They&rsquo;re your filter for everything.
-      </p>
 
-      {top5Values.length > 0 && (
-        <div className="top5-results">
-          <h2>{firstName ? `${firstName}\u2019s Top ${top5Values.length}` : `Your Top ${top5Values.length}`}</h2>
-          <div className="top5-results-list">
-            {top5Values.map((v, i) => (
-              <div key={v.id} className="top5-result-item">
-                <span className="top5-rank">{i + 1}</span>
-                <div>
-                  <div className="top5-result-title">{v.title}</div>
-                  <div className="top5-result-desc">{v.description}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="results-body">
-        <p>
-          These aren&rsquo;t just words. They&rsquo;re the lens through which you make decisions,
-          attract the right clients, and build something that actually fits your life.
-        </p>
+      {/* Headline */}
+      <div className="res-headline">
+        <p className="res-title">Your values, sorted.</p>
+        <p className="res-subtitle">Print these out. Save the link. Come back when you&rsquo;re making a decision and want to check in with yourself.</p>
       </div>
 
+      {/* Top 5 */}
+      <div className="gap-section">
+        <div className="res-top5-grid">
+          {top5Values.map((v, i) => (
+            <div key={v.id} className="res-value-card">
+              <div className="res-value-number">{i + 1}</div>
+              <div className="res-value-content">
+                <div className="res-value-name">{toTitleCase(v.title)}</div>
+                <div className="res-value-def">{v.description}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="card res-actions-card gap-cards">
+        <div className="res-actions-body">
+          <div className="res-actions-row">
+            <button className="res-btn-primary" onClick={handleCopyResultsLink}>
+              {linkCopied ? 'Copied!' : 'Save my results link'}
+            </button>
+            <button className="res-btn-secondary" onClick={handleDownloadImage}>Download image</button>
+            <button className="res-btn-secondary" onClick={handleShare}>Share with a friend</button>
+          </div>
+        </div>
+      </div>
+
+      {/* Tensions */}
       {conflicts.length > 0 && (
-        <div className="conflicts-section">
-          <h2>Value Tensions</h2>
-          <p className="conflicts-intro">
-            These values you rated highly can sometimes pull in different directions.
-            Reflecting on how you balance them can deepen your self-understanding.
-          </p>
-          {conflicts.map(([a, b], i) => (
-            <div key={i} className="conflict-pair">
-              <span className="conflict-value">{a}</span>
-              <span className="conflict-vs">&harr;</span>
-              <span className="conflict-value">{b}</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {friendPiles && (
-        <div className="comparison-section">
-          <h2>How You Compare</h2>
-          <div className="comparison-grid">
-            <div className="comparison-col">
-              <h3>{firstName || 'You'}</h3>
-              {piles.veryImportant.map((v) => (
-                <div key={v.id} className="comparison-item own">{v.title}</div>
-              ))}
-            </div>
-            <div className="comparison-col">
-              <h3>{friendName || 'Friend'}</h3>
-              {friendPiles.veryImportant.map((v) => {
-                const shared = piles.veryImportant.some((own) => own.id === v.id);
-                return (
-                  <div key={v.id} className={`comparison-item friend ${shared ? 'shared' : ''}`}>
-                    {v.title} {shared && '\u2605'}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          <canvas ref={compareCanvasRef} style={{ display: 'none' }} />
-          <div className="comparison-actions">
-            <button className="btn btn-primary" onClick={handleDownloadComparison}>
-              Save Comparison
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="sales-section">
-        <img
-          src="https://images.squarespace-cdn.com/content/68138d98b173884d75ec5456/75caa95d-32bb-459d-becb-187d6afdd388/Cursive+Stacked.png?content-type=image%2Fpng"
-          alt="The Rare Company Club"
-          className="sales-logo"
-        />
-        <p className="sales-body">
-          Want to build your business around what you just discovered?
-          The Rare Company Club is where we do that together.
-          Work alongside other self-employed women who are shaping businesses as unique as they are.
-        </p>
-        <div className="sales-actions">
-          <a className="btn btn-primary" href="https://www.alisonrose.nl/the-rare-company-club" target="_blank" rel="noopener noreferrer">
-            Join the Club
-          </a>
-        </div>
-        <p className="sales-nudge">
-          Ready to go deeper? Use your values as the foundation for your astrology business profile.
-          {' '}
-          <a href="#" target="_blank" rel="noopener noreferrer">
-            Try Alison Rose | In Alignment &rarr;
-          </a>
-        </p>
-      </div>
-
-      <div className="results-columns">
-        <div className="results-column col-very-important">
-          <h2>Very Important to Me</h2>
-          <span className="column-count">
-            {piles.veryImportant.length} values
-          </span>
-          {piles.veryImportant.map((v) => (
-            <div key={v.id} className="result-card">
-              <div className="result-title">{v.title}</div>
-              <div className="result-desc">{v.description}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="results-column col-important">
-          <h2>Important to Me</h2>
-          <span className="column-count">
-            {piles.important.length} values
-          </span>
-          {piles.important.map((v) => (
-            <div key={v.id} className="result-card">
-              <div className="result-title">{v.title}</div>
-              <div className="result-desc">{v.description}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="results-column col-not-important">
-          <h2>Not Important to Me</h2>
-          <span className="column-count">
-            {piles.notImportant.length} values
-          </span>
-          {piles.notImportant.map((v) => (
-            <div key={v.id} className="result-card">
-              <div className="result-title">{v.title}</div>
-              <div className="result-desc">{v.description}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {pastResults.length > 1 && (
-        <div className="history-section">
-          <div className="history-header">
-            <h2>Your Sort History</h2>
-            <button
-              className="clear-history-link"
-              onClick={() => {
-                try { localStorage.removeItem(HISTORY_KEY); } catch {}
-                setPastResults([]);
-              }}
-            >
-              Clear history
-            </button>
-          </div>
-          <div className="history-list">
-            {pastResults.slice().reverse().map((r, i) => (
-              <div key={i} className="history-item">
-                <span className="history-date">
-                  {new Date(r.date).toLocaleDateString()}
-                </span>
-                <span className="history-summary">
-                  {r.veryImportant.length} very important &middot;{' '}
-                  {r.important.length} important &middot;{' '}
-                  {r.notImportant.length} not important
-                </span>
+        <div className="card gap-section">
+          <div className="card-body">
+            <span className="eyebrow res-eyebrow-terra" style={{ marginBottom: 16 }}>Where things pull</span>
+            <p className="res-tensions-intro">A few of your values sit in tension with each other. The friction is usually where the interesting decisions live.</p>
+            {conflicts.map(([a, b, note], i) => (
+              <div key={i} className="res-tension-pair">
+                <div className="res-tension-values">
+                  <div className="res-tension-value">{toTitleCase(a)}</div>
+                  <div className="res-tension-arrow">&harr;</div>
+                  <div className="res-tension-value">{toTitleCase(b)}</div>
+                </div>
+                <div className="res-tension-note">{note}</div>
               </div>
             ))}
           </div>
         </div>
       )}
+
+      {/* RCC */}
+      <div className="card res-rcc-card gap-section">
+        <div className="res-rcc-body-wrap">
+          <img src="/RCCLogoStacked.png" alt="The Rare Company Club" className="res-rcc-logo" />
+          <p className="res-rcc-title">A room built around exactly this.</p>
+          <p className="res-rcc-body">The online home for self-employed folks who want their work to reflect who they actually are. If that feels like you, check it out with a 7 day free trial.</p>
+          <a className="res-btn-rcc" href="https://www.alisonrose.nl/the-rare-company-club" target="_blank" rel="noopener noreferrer">Join the Club</a>
+          <a href="https://www.alisonrose.nl/in-alignment" target="_blank" rel="noopener noreferrer" className="res-rcc-secondary">
+            Use your values as the foundation for your astrology business profile. <span>Try In Alignment &rarr;</span>
+          </a>
+        </div>
+      </div>
+
+      {/* Full breakdown */}
+      <div className="gap-section">
+        <h2 className="res-section-heading">Your full sort</h2>
+        <div className="res-breakdown-grid">
+          <div className="res-breakdown-col">
+            <span className="eyebrow res-eyebrow-mustard">Very Important</span>
+            <span className="res-breakdown-count">{piles.veryImportant.length} values</span>
+            <ul className="res-breakdown-list">
+              {piles.veryImportant.map(v => (
+                <li key={v.id} className="res-breakdown-item">
+                  <div className="res-breakdown-name">{toTitleCase(v.title)}</div>
+                  <div className="res-breakdown-def">{v.description}</div>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="res-breakdown-col">
+            <span className="eyebrow res-eyebrow-sage">Important</span>
+            <span className="res-breakdown-count">{piles.important.length} values</span>
+            <ul className="res-breakdown-list">
+              {piles.important.map(v => (
+                <li key={v.id} className="res-breakdown-item">
+                  <div className="res-breakdown-name">{toTitleCase(v.title)}</div>
+                  <div className="res-breakdown-def">{v.description}</div>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="res-breakdown-col">
+            <span className="eyebrow res-eyebrow-fig">Not Important</span>
+            <span className="res-breakdown-count">{piles.notImportant.length} values</span>
+            <ul className="res-breakdown-list">
+              {piles.notImportant.map(v => (
+                <li key={v.id} className="res-breakdown-item">
+                  <div className="res-breakdown-name">{toTitleCase(v.title)}</div>
+                  <div className="res-breakdown-def">{v.description}</div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Start over */}
+      <div className="res-start-over">
+        <button className="res-btn-ghost" onClick={onStartOver}>Start over</button>
+      </div>
 
       <canvas ref={canvasRef} style={{ display: 'none' }} />
-
-      <div className="results-actions">
-        <button className="btn btn-primary" onClick={handleCopyResultsLink}>
-          {linkCopied ? 'Copied!' : 'Save My Results Link'}
-        </button>
-        <button className="btn btn-primary" onClick={() => window.print()}>
-          Print / Save PDF
-        </button>
-        <button className="btn btn-primary" onClick={handleDownloadImage}>
-          Download Image
-        </button>
-        <button className="btn btn-primary" onClick={handleShare}>
-          Invite a Friend
-        </button>
-        <button className="btn btn-secondary" onClick={onStartOver}>
-          Start Over
-        </button>
-      </div>
 
     </div>
   );
@@ -1060,41 +866,43 @@ function subscribeToKit(email, firstName, resultsUrl) {
 
 function App() {
   const [screen, setScreen] = useState('intro');
+
+  // User info
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [emailConsent, setEmailConsent] = useState(false);
-  const [cards, setCards] = useState([]);
-  const [piles, setPiles] = useState({
-    veryImportant: [],
-    important: [],
-    notImportant: [],
-  });
-  const [history, setHistory] = useState([]);
+
+  // Round 1
+  const [round1Cards, setRound1Cards] = useState([]);
+  const [round1Sorts, setRound1Sorts] = useState({});
+  const [round1Batch, setRound1Batch] = useState(0);
+
+
+  // Top 5 pool + final state
+  const [top5Pool, setTop5Pool] = useState([]);
   const [top5Ids, setTop5Ids] = useState([]);
+  const [finalPiles, setFinalPiles] = useState({ veryImportant: [], important: [], notImportant: [] });
+
+  // Social / history
   const [friendPiles, setFriendPiles] = useState(null);
   const [friendName, setFriendName] = useState('');
   const [pastResults, setPastResults] = useState([]);
   const [savedProgress, setSavedProgress] = useState(null);
 
-  const totalCards = values.length;
-  const sortedCount = totalCards - cards.length;
-  const currentCard = cards[0] || null;
-
   // Load saved data on mount
   useEffect(() => {
     const saved = loadProgress();
-    if (saved) setSavedProgress(saved);
+    if (saved && saved.round === 'round1') setSavedProgress(saved);
 
     setPastResults(loadHistory());
 
     const params = new URLSearchParams(window.location.search);
 
-    // Direct results link (from Kit email)
     const resultsData = params.get('results');
     if (resultsData) {
       const decoded = decodeResults(resultsData);
       if (decoded) {
-        setPiles(decoded);
+        setFinalPiles(decoded);
         setTop5Ids(decoded.top5Ids || []);
         const nameParam = params.get('name');
         if (nameParam) setFirstName(nameParam);
@@ -1103,141 +911,125 @@ function App() {
       }
     }
 
-    // Check for friend comparison in URL
     const compareData = params.get('compare');
-    const fromName = params.get('from');
     if (compareData) {
       const decoded = decodeResults(compareData);
       if (decoded) {
         setFriendPiles(decoded);
+        const fromName = params.get('from');
         if (fromName) setFriendName(decodeURIComponent(fromName));
       }
     }
   }, []);
 
-  // Auto-save progress during sorting
+  // Auto-save round 1 progress
   useEffect(() => {
-    if (screen === 'sorting' && sortedCount > 0) {
+    if (screen === 'round1' && Object.keys(round1Sorts).length > 0) {
       saveProgress({
-        cards,
-        piles,
-        history,
+        round: 'round1',
+        round1Cards,
+        round1Sorts,
+        round1Batch,
         firstName,
         email,
-        sortedCount,
+        sortedCount: Object.keys(round1Sorts).length,
       });
     }
-  }, [screen, cards, piles, history, firstName, email, sortedCount]);
+  }, [screen, round1Cards, round1Sorts, round1Batch, firstName, email]);
 
   // Subscribe to Kit when results are ready
   const kitSentRef = useRef(false);
   useEffect(() => {
     if (screen === 'results' && email && emailConsent && !kitSentRef.current) {
       kitSentRef.current = true;
-      const resultsUrl = buildResultsUrl(piles, top5Ids, firstName);
+      const resultsUrl = buildResultsUrl(finalPiles, top5Ids, firstName);
       subscribeToKit(email, firstName, resultsUrl);
     }
-  }, [screen, email, emailConsent, firstName, piles, top5Ids]);
+  }, [screen, email, emailConsent, firstName, finalPiles, top5Ids]);
 
   const handleStart = useCallback(() => {
-    setCards(shuffle(values));
-    setPiles({ veryImportant: [], important: [], notImportant: [] });
-    setHistory([]);
+    const shuffled = shuffle(values);
+    setRound1Cards(shuffled);
+    setRound1Sorts({});
+    setRound1Batch(0);
+    setTop5Pool([]);
     setTop5Ids([]);
+    setFinalPiles({ veryImportant: [], important: [], notImportant: [] });
     setSavedProgress(null);
     clearProgress();
-    setScreen('sorting');
+    kitSentRef.current = false;
+    setScreen('round1');
   }, []);
 
   const handleResume = useCallback(() => {
     if (!savedProgress) return;
-    setCards(savedProgress.cards);
-    setPiles(savedProgress.piles);
-    setHistory(savedProgress.history);
+    setRound1Cards(savedProgress.round1Cards);
+    setRound1Sorts(savedProgress.round1Sorts);
+    setRound1Batch(savedProgress.round1Batch);
     if (savedProgress.firstName) setFirstName(savedProgress.firstName);
     if (savedProgress.email) setEmail(savedProgress.email);
     setSavedProgress(null);
-    setScreen('sorting');
+    setScreen('round1');
   }, [savedProgress]);
 
-  const handleSort = useCallback(
-    (pileId) => {
-      if (!cards.length) return;
-      const card = cards[0];
-      setHistory((prev) => [...prev, { card, pileId }]);
-      setPiles((prev) => ({
-        ...prev,
-        [pileId]: [...prev[pileId], card],
-      }));
-      const remaining = cards.slice(1);
-      setCards(remaining);
-      if (remaining.length === 0) {
-        clearProgress();
-        // Go to top5 if more than 5 very important, otherwise straight to results
-        const newVeryImportant = [...piles.veryImportant, ...(pileId === 'veryImportant' ? [card] : [])];
-        if (newVeryImportant.length > TOP5_LIMIT) {
-          setScreen('top5');
-        } else {
-          const finalPiles = {
-            ...piles,
-            [pileId]: [...piles[pileId], card],
-          };
-          setTop5Ids(finalPiles.veryImportant.map((v) => v.id));
-          saveResultToHistory(finalPiles);
-          setScreen('results');
-        }
-      }
-    },
-    [cards, piles]
-  );
+  const handleSort = useCallback((cardId, pile) => {
+    setRound1Sorts(prev => ({ ...prev, [cardId]: pile }));
+  }, []);
 
-  const saveResultToHistory = useCallback((finalPiles) => {
+  const handleNextBatch = useCallback(() => {
+    setRound1Batch(prev => prev + 1);
+  }, []);
+
+  const handleDevSkip = useCallback(() => {
+    const autoSorts = {};
+    round1Cards.forEach((c, i) => {
+      autoSorts[c.id] = i < 12 ? 'very' : i < 24 ? 'imp' : 'not';
+    });
+    setRound1Sorts(autoSorts);
+    const veryCards = round1Cards.slice(0, 12);
+    setTop5Pool(veryCards);
+    clearProgress();
+    setScreen('top5');
+  }, [round1Cards]);
+
+  const handleContinueToTop5 = useCallback(() => {
+    clearProgress();
+    const veryCards = round1Cards.filter(c => round1Sorts[c.id] === 'very');
+    if (veryCards.length < 5) {
+      const impCards = round1Cards.filter(c => round1Sorts[c.id] === 'imp');
+      setTop5Pool([...veryCards, ...impCards]);
+    } else {
+      setTop5Pool(veryCards);
+    }
+    setScreen('top5');
+  }, [round1Cards, round1Sorts]);
+
+  const saveResultToHistory = useCallback((piles) => {
     const result = {
       date: new Date().toISOString(),
-      veryImportant: finalPiles.veryImportant.map((v) => ({ id: v.id, title: v.title })),
-      important: finalPiles.important.map((v) => ({ id: v.id, title: v.title })),
-      notImportant: finalPiles.notImportant.map((v) => ({ id: v.id, title: v.title })),
+      veryImportant: piles.veryImportant.map(v => ({ id: v.id, title: v.title })),
+      important: piles.important.map(v => ({ id: v.id, title: v.title })),
+      notImportant: piles.notImportant.map(v => ({ id: v.id, title: v.title })),
     };
     saveToHistory(result);
     setPastResults(loadHistory());
   }, []);
 
-  const handleTop5Confirm = useCallback(
-    (selectedIds) => {
-      setTop5Ids(selectedIds);
-      saveResultToHistory(piles);
-      setScreen('results');
-    },
-    [piles, saveResultToHistory]
-  );
-
-  const handleUndo = useCallback(() => {
-    if (!history.length) return;
-    const last = history[history.length - 1];
-    setHistory((prev) => prev.slice(0, -1));
-    setPiles((prev) => ({
-      ...prev,
-      [last.pileId]: prev[last.pileId].slice(0, -1),
-    }));
-    setCards((prev) => [last.card, ...prev]);
-  }, [history]);
-
-  const handleFinishEarly = useCallback(() => {
-    clearProgress();
-    if (piles.veryImportant.length > TOP5_LIMIT) {
-      setScreen('top5');
-    } else {
-      setTop5Ids(piles.veryImportant.map((v) => v.id));
-      saveResultToHistory(piles);
-      setScreen('results');
-    }
-  }, [piles, saveResultToHistory]);
+  const handleTop5Confirm = useCallback((selectedIds) => {
+    const piles = buildPiles(round1Cards, round1Sorts);
+    setTop5Ids(selectedIds);
+    setFinalPiles(piles);
+    saveResultToHistory(piles);
+    setScreen('results');
+  }, [round1Cards, round1Sorts, saveResultToHistory]);
 
   const handleStartOver = useCallback(() => {
-    setCards([]);
-    setPiles({ veryImportant: [], important: [], notImportant: [] });
-    setHistory([]);
+    setRound1Cards([]);
+    setRound1Sorts({});
+    setRound1Batch(0);
+    setTop5Pool([]);
     setTop5Ids([]);
+    setFinalPiles({ veryImportant: [], important: [], notImportant: [] });
     kitSentRef.current = false;
     clearProgress();
     setScreen('intro');
@@ -1245,6 +1037,7 @@ function App() {
 
   return (
     <div className="app">
+      {screen !== 'intro' && <SiteNav />}
       <div className="app-content">
         {screen === 'intro' && (
           <IntroScreen
@@ -1260,35 +1053,43 @@ function App() {
             friendName={friendName}
           />
         )}
-        {screen === 'sorting' && (
-          <SortingScreen
-            currentCard={currentCard}
-            totalCards={totalCards}
-            sortedCount={sortedCount}
-            piles={piles}
+        {screen === 'round1' && (
+          <GridSortScreen
+            roundNum={1}
+            totalRounds={2}
+            cards={round1Cards}
+            sortMap={round1Sorts}
+            batchIndex={round1Batch}
             onSort={handleSort}
-            onUndo={handleUndo}
-            onFinishEarly={handleFinishEarly}
-            canUndo={history.length > 0}
+            onNextBatch={handleNextBatch}
+            onContinue={handleContinueToTop5}
+            onBack={() => setScreen('intro')}
+            onDevSkip={import.meta.env.DEV ? handleDevSkip : undefined}
+            continueLabel="Choose my top five"
+            headerTitle="Sort every card into a pile."
+            headerCopy={
+              <>
+                <p>Go with your first instinct. The values you are actually living, right now.</p>
+                <p>Drag each card into one of the three piles. Three seconds is enough.</p>
+              </>
+            }
+            footerNote="Your very important pile carries into round two."
           />
         )}
         {screen === 'top5' && (
           <Top5Screen
-            veryImportant={piles.veryImportant}
+            pool={top5Pool}
             onConfirm={handleTop5Confirm}
+            onBack={() => setScreen('round1')}
           />
         )}
         {screen === 'results' && (
           <ResultsScreen
-            piles={piles}
+            piles={finalPiles}
             top5Ids={top5Ids}
             firstName={firstName}
             email={email}
             onStartOver={handleStartOver}
-            friendPiles={friendPiles}
-            friendName={friendName}
-            pastResults={pastResults}
-            setPastResults={setPastResults}
           />
         )}
       </div>

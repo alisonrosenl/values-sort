@@ -52,6 +52,11 @@ const values = [
   { id: 47, title: "SPIRITUALITY", description: "to grow and mature spiritually" },
   { id: 48, title: "WEALTH", description: "to have plenty of money" },
   { id: 49, title: "WORLD PEACE", description: "to work to promote peace in the world" },
+  { id: 50, title: "ACCEPTANCE", description: "to be accepted as I am" },
+  { id: 51, title: "NON-CONFORMITY", description: "to question and challenge authority and norms" },
+  { id: 53, title: "COURAGE", description: "to be brave in the face of adversity" },
+  { id: 54, title: "LOYALTY", description: "to be loyal and devoted to those I care about" },
+  { id: 55, title: "TOLERANCE", description: "to accept and respect those who differ from me" },
 ];
 
 export default values;
