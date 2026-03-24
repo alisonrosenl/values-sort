@@ -424,7 +424,7 @@ function IntroScreen({ firstName, setFirstName, email, setEmail, emailConsent, s
         <div className="lp-eyebrow-row">
           <span className="lp-eyebrow">Free Tool</span>
           <span className="lp-eyebrow lp-eyebrow-sage">Self-Discovery</span>
-          <span className="lp-eyebrow lp-eyebrow-terra">15 Minutes</span>
+          <span className="lp-eyebrow lp-eyebrow-rose">15 Minutes</span>
         </div>
         <h1>You already know what<br />you value. Sort it <em>out.</em></h1>
         <p className="lp-subhead">A card sort that turns a vague sense of your priorities into a short, specific list.</p>
@@ -761,7 +761,7 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver }) {
       {conflicts.length > 0 && (
         <div className="card gap-section">
           <div className="card-body">
-            <span className="eyebrow res-eyebrow-terra" style={{ marginBottom: 16 }}>Where things pull</span>
+            <span className="eyebrow res-eyebrow-rose" style={{ marginBottom: 16 }}>Where things pull</span>
             <p className="res-tensions-intro">A few of your values sit in tension with each other. The friction is usually where the interesting decisions live.</p>
             {conflicts.map(([a, b, note], i) => (
               <div key={i} className="res-tension-pair">

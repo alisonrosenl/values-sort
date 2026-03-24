@@ -47,8 +47,8 @@
   --mustard-light:       #F0E4CC;
   --mustard:             #9F6C26;
   --mustard-dark:        #8A5C1C;
-  --terra-light:         #F2E0D6;
-  --terra:               #965443;
+  --rose-light:          #F2E0D6;
+  --rose:                #93493E;
   --sage-light:          #EBEFEE;
   --teal:                #152E3A;
 
@@ -133,9 +133,9 @@
   background: var(--sage-light);
 }
 
-.lp-eyebrow-terra {
-  color: var(--terra);
-  background: var(--terra-light);
+.lp-eyebrow-rose {
+  color: var(--rose);
+  background: var(--rose-light);
 }
 
 .lp-hero h1 {
@@ -150,7 +150,7 @@
 
 .lp-hero h1 em {
   font-style: italic;
-  color: var(--terra);
+  color: var(--rose);
 }
 
 .lp-subhead {
@@ -912,7 +912,7 @@
   font-family: 'Quincy CF', Georgia, serif;
   font-size: 72px;
   font-weight: 700;
-  color: var(--terra-light);
+  color: var(--rose-light);
   line-height: 1;
 }
 
@@ -975,7 +975,7 @@
 }
 
 /* ── Eyebrow color variants for results ── */
-.res-eyebrow-terra   { background: var(--terra-light); color: var(--terra); }
+.res-eyebrow-rose   { background: var(--rose-light); color: var(--rose); }
 .res-eyebrow-teal    { background: var(--teal-mid);    color: var(--white); }
 .res-eyebrow-mustard { background: var(--mustard-light); color: var(--mustard-dark); }
 .res-eyebrow-sage    { background: var(--sage-light);  color: var(--teal-mid); }
@@ -1011,7 +1011,7 @@
 
 .res-tension-arrow {
   font-size: 16px;
-  color: var(--terra);
+  color: var(--rose);
 }
 
 .res-tension-note {
@@ -1052,7 +1052,7 @@
 
 .res-btn-rcc {
   display: inline-block;
-  background: var(--terra);
+  background: var(--rose);
   border: none;
   color: var(--white);
   border-radius: 6px;
@@ -1074,7 +1074,7 @@
 }
 
 .res-rcc-secondary span {
-  color: var(--terra);
+  color: var(--rose);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -1401,8 +1401,8 @@
   --mustard-light: #F0E4CC;
   --mustard: #9F6C26;
   --mustard-dark: #8A5C1C;
-  --terra-light: #F2E0D6;
-  --terra: #965443;
+  --rose-light: #F2E0D6;
+  --rose: #93493E;
   --sage-light: #EBEFEE;
   --sage-mid: #4E7A70;
   --fig-light: #EAE0E6;
