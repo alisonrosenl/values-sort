@@ -830,9 +830,9 @@
 }
 
 .top5-card.top5-selected {
-  border-color: #9F6C26;
-  background: #F0E4CC;
-  box-shadow: 0 0 0 2px rgba(159, 108, 38, 0.2);
+  border-color: var(--rose);
+  background: var(--rose-light);
+  box-shadow: 0 0 0 2px rgba(147, 73, 62, 0.2);
 }
 
 .top5-card-title {
@@ -1561,6 +1561,7 @@
 .eyebrow-fig     { background: var(--fig-light);     color: var(--fig); }
 .eyebrow-sage    { background: var(--sage-light);    color: var(--teal-mid); }
 .eyebrow-mustard { background: var(--mustard-light); color: var(--mustard-dark); }
+.eyebrow-rose    { background: var(--rose-light);    color: var(--rose); }
 .eyebrow-teal    { background: var(--teal-mid);      color: var(--white); }
 
 /* ── Value card grid ── */
@@ -1668,11 +1669,11 @@
 
 .z-not  { border-color: var(--fig); }
 .z-imp  { border-color: var(--sage); }
-.z-very { border-color: var(--mustard); }
+.z-very { border-color: var(--rose); }
 
 .z-not.drag-over  { background: var(--fig-light); }
 .z-imp.drag-over  { background: var(--sage-light); }
-.z-very.drag-over { background: var(--mustard-light); }
+.z-very.drag-over { background: var(--rose-light); }
 
 .zone-chips {
   display: flex;
@@ -1746,7 +1747,7 @@
 
 .fb-not  { border-color: var(--fig);     background: var(--fig-light);     color: var(--fig); }
 .fb-imp  { border-color: var(--sage);    background: var(--sage-light);    color: var(--teal-mid); }
-.fb-very { border-color: var(--mustard); background: var(--mustard-light); color: var(--mustard-dark); }
+.fb-very { border-color: var(--rose); background: var(--rose-light); color: var(--rose); }
 
 .sort-tray-advance {
   font-family: 'Work Sans', sans-serif;
