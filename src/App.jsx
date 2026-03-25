@@ -843,19 +843,13 @@ function ResultsScreen({ piles, top5Ids, firstName, email, onStartOver }) {
 
 // --- Kit (email marketing) ---
 
-const KIT_FORM_ID = '9123731';
-const KIT_API_KEY = 'kno5wM1wNGSxWAyWP9Ff6A';
+const KIT_WORKER_URL = 'https://winter-heart-bee7.alison-bba.workers.dev';
 
 function subscribeToKit(email, firstName, resultsUrl) {
-  fetch(`https://api.kit.com/v3/forms/${KIT_FORM_ID}/subscribe`, {
+  fetch(KIT_WORKER_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      api_key: KIT_API_KEY,
-      email,
-      first_name: firstName,
-      fields: { results_url: resultsUrl },
-    }),
+    body: JSON.stringify({ email, firstName, resultsUrl }),
   }).catch(() => {});
 }
 
